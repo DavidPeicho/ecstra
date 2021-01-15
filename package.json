@@ -1,0 +1,33 @@
+{
+  "name": "fecs",
+  "version": "0.0.1",
+  "description": "Fast & Flexible EntityComponentSystem (ECS) for JavaScript",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/DavidPeicho/flecs.git"
+  },
+  "author": "David Peicho <david.peicho@gmail.com>",
+  "license": "MIT",
+  "keywords": [
+    "ecs",
+    "entity component system"
+  ],
+  "main": "./index.js",
+  "module": "./index.js",
+  "types": "./index.d.ts",
+  "scripts": {
+    "build": "npm run copy:to:dist && tsc",
+    "start": "npm run copy:to:dist && tsc --watch",
+    "lint": "eslint src",
+    "copy:to:dist": "cp package.json lib && cp README.md lib"
+  },
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^4.13.0",
+    "@typescript-eslint/parser": "^4.13.0",
+    "eslint": "^7.17.0",
+    "eslint-config-prettier": "^7.1.0",
+    "eslint-plugin-prettier": "^3.3.1",
+    "prettier": "^2.2.1",
+    "typescript": "^4.1.3"
+  }
+}

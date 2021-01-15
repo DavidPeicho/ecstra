@@ -1,0 +1,24 @@
+{
+  "compilerOptions": {
+      "target": "es6",
+      "moduleResolution": "node",
+      "outDir": "./lib",
+      "declaration": true,
+      "sourceMap": false,
+      "allowJs": false,
+      "newLine": "LF",
+      "strict": true,
+      "noImplicitReturns": true,
+      "noImplicitThis": true,
+      "noUnusedLocals": true,
+      "noEmitOnError": true,
+      "strictFunctionTypes": true,
+      "skipLibCheck": true,
+      "forceConsistentCasingInFileNames": true,
+      "stripInternal": true
+  },
+
+  "include": [ "./src" ],
+
+  "exclude": [ "node_modules" ]
+}
