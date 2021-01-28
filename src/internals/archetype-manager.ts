@@ -4,7 +4,6 @@ import { World } from '../world.js';
 import { Archetype } from './archetype.js';
 
 export class ArchetypeManager {
-
   private readonly _world: World;
   private readonly _archetypes: Map<string, Archetype>;
   private readonly _emptyHash: string;
@@ -41,7 +40,8 @@ export class ArchetypeManager {
       prevArchetype.entities.splice(prevArchetype.entities.indexOf(entity), 1);
     }
 
-    const prevArchetypeHash = prevArchetype === null ? this._emptyHash : prevArchetype.hash;
+    const prevArchetypeHash =
+      prevArchetype === null ? this._emptyHash : prevArchetype.hash;
     const hashEntry = entity.hasComponent(Class) ? '1' : '0';
     const newArchetypeHash = buildHash(prevArchetypeHash, hashEntry, compId);
 
@@ -53,9 +53,10 @@ export class ArchetypeManager {
     const archetype = this._archetypes.get(newArchetypeHash)!;
     archetype.entities.push(entity);
   }
-
 }
 
 function buildHash(prevHash: string, entry: string, index: number) {
-  return `${prevHash.substring(0, index)}${entry}${prevHash.substring(index + 1)}`;
+  return `${prevHash.substring(0, index)}${entry}${prevHash.substring(
+    index + 1
+  )}`;
 }

@@ -1,4 +1,4 @@
-import { ComponentClass, Nullable } from "./types";
+import { ComponentClass, Nullable } from './types';
 
 export class Component {
   public static readonly Name: Nullable<string> = null;
@@ -23,8 +23,6 @@ export class TagComponent {
 }
 
 // @todo: up to one component per world on a dummy entity.
-export class SingletonComponent {
-
-}
+export class SingletonComponent {}
 
 export type GenericComponent = Component | TagComponent;

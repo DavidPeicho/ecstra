@@ -1,5 +1,4 @@
 export class Observer {
-
   /**
    * If `true`, the observable will remove this observer automatically
    * after a trigger
@@ -18,10 +17,10 @@ export class Observer {
    *   take a look at the [[ObserverParameters]] interface
    */
   public constructor(parameters: ObserverParameters | ObserverCallback) {
-    const {
-      callback,
-      notifyOnce = false
-    } = createParameters(parameters, 'callback');
+    const { callback, notifyOnce = false } = createParameters(
+      parameters,
+      'callback'
+    );
     this.notifyOnce = notifyOnce;
     this._callback = callback;
   }
@@ -35,11 +34,9 @@ export class Observer {
   public get notifyOnce(): boolean {
     return this._notifyOnce;
   }
-
 }
 
 export class Observable {
-
   /**
    * List of observers listening on this observable
    *
@@ -82,21 +79,26 @@ export class Observable {
     for (let i = 0; i < observers.length; ++i) {
       const obs = observers[i];
       obs.callback(...extraArgs);
-      if (obs.notifyOnce) { observers.splice(i, 1); }
+      if (obs.notifyOnce) {
+        observers.splice(i, 1);
+      }
     }
   }
 
   /** @inheritdoc */
   public observe(params: ObserveArgs): Observer {
     const index = this._findObserver(params);
-    if (index !== -1) { return this._observers[index]; }
+    if (index !== -1) {
+      return this._observers[index];
+    }
 
-    const observer = (params as Observer).isObserver ?
-      (params as Observer) : new Observer(params);
+    const observer = (params as Observer).isObserver
+      ? (params as Observer)
+      : new Observer(params);
 
-    const priority = (
-      isObject(params) ? (params as ObserverParameters).priority : null
-    ) || Number.POSITIVE_INFINITY;
+    const priority =
+      (isObject(params) ? (params as ObserverParameters).priority : null) ||
+      Number.POSITIVE_INFINITY;
 
     // Inserts at index `priority`.
     this._observers.splice(priority, 0, observer);
@@ -151,7 +153,7 @@ export class Observable {
    */
   public clear(): Observer[] {
     const observers = this._observers;
-    const copy = [ ...observers ];
+    const copy = [...observers];
     observers.length = 0;
     return copy;
   }
@@ -165,14 +167,17 @@ export class Observable {
       return this._observers.indexOf(params as Observer);
     }
 
-    const callback = isObject(params as ObserverParameters) ?
-      (params as ObserverParameters).callback : (params as ObserverCallback);
+    const callback = isObject(params as ObserverParameters)
+      ? (params as ObserverParameters).callback
+      : (params as ObserverCallback);
 
     const observers = this._observers;
     const nbObservers = observers.length;
     for (let i = 0; i < nbObservers; ++i) {
       const obs = observers[i];
-      if (callback === obs.callback) { return i; }
+      if (callback === obs.callback) {
+        return i;
+      }
     }
     return -1;
   }
@@ -190,5 +195,4 @@ export class Observable {
     }
     return null;
   }
-
 }

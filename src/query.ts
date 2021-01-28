@@ -1,8 +1,7 @@
-import { Entity } from "./entity";
-import { Archetype } from "./internals/archetype";
+import { Entity } from './entity';
+import { Archetype } from './internals/archetype';
 
 export class Query {
-
   private _archetypes: Archetype[];
 
   public constructor() {
@@ -30,7 +29,6 @@ export class Query {
       }
     }
   }
-
 }
 
 export type QueryExecutorVoid = (entity: Entity) => void;

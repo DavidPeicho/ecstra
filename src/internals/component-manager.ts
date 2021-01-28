@@ -1,15 +1,12 @@
-import { ComponentClass } from "../types";
+import { ComponentClass } from '../types';
 
 export class ComponentManager {
-
   public readonly maxComponentTypeCount: number;
   private _lastIdentifier: number;
   private _classToIdentifier: Map<ComponentClass, number>;
 
   public constructor(options: ComponentManagerOptions) {
-    const {
-      maxComponentType
-    } = options;
+    const { maxComponentType } = options;
     this.maxComponentTypeCount = maxComponentType;
     this._lastIdentifier = 0;
     this._classToIdentifier = new Map();
@@ -27,7 +24,6 @@ export class ComponentManager {
       this._classToIdentifier.set(Class, this._lastIdentifier++);
     }
   }
-
 }
 
 export type ComponentManagerOptions = {

@@ -1,27 +1,23 @@
-import { SystemClass } from "../types";
-import { System } from "./system";
-
-export enum SortType {
-  Incremental = 'incremental',
-  Topological = 'topological'
-}
+import { SystemClass } from '../types';
+import { sortByOrder, System } from './system';
 
 export class SystemGroup {
+  public static Name: string = 'Default';
 
-  public sortType: SortType;
+  public order: number;
+  public useTopologicalSorting: boolean;
+
   private _systems: System[];
 
   public constructor() {
-    this.sortType = SortType.Topological;
+    this.order = 0;
+    this.useTopologicalSorting = true;
     this._systems = [];
   }
 
   public add(system: System): void {
-    if (this.sortType === SortType.Topological) {
-      // @todo.
-    }
-    // @todo: lazy sort?
-    this.sort();
+    // @todo: checks it's not already added.
+    this._systems.push(system);
   }
 
   public tick(delta: number): void {
@@ -32,19 +28,61 @@ export class SystemGroup {
   }
 
   public sort(): void {
-    if (this.sortType === SortType.Topological) {
-
-    } else {
-      this._systems.sort(orderSort);
+    if (this.useTopologicalSorting) {
+      this._sortTopological();
     }
+    this._systems.sort(sortByOrder);
   }
 
+  private _sortTopological(): void {
+    const nodes = new Map<SystemClass, Node>();
+    const systems = this._systems;
+
+    for (const system of systems) {
+      // @todo: check for duplicate.
+      // @todo: save the nodes map.
+      const Class = system.constructor as SystemClass;
+      nodes.set(Class, { next: [], system, visited: false });
+    }
+
+    // @todo: use indices instead of changing lenght.
+    systems.length = 0;
+    for (const [Class, node] of nodes) {
+      if (Class.updateAfter) {
+        for (const AfterClass of Class.updateAfter) {
+          nodes.get(AfterClass)?.next.push(Class);
+        }
+      }
+      if (Class.updateBefore) {
+        for (const BeforeClass of Class.updateBefore) {
+          if (nodes.has(BeforeClass)!) {
+            node.next.push(BeforeClass);
+          }
+        }
+      }
+      topologicalSortRec(systems, Class, nodes);
+    }
+  }
 }
 
-function topologicalOrderSort(a: System, b: System): number {
-  return a.order - b.order;
+function topologicalSortRec(
+  result: System[],
+  Class: SystemClass,
+  visited: Map<SystemClass, Node>
+): void {
+  const node = visited.get(Class)!;
+  if (!node) {
+    return;
+  }
+  node.visited = true;
+  for (const next of node.next) {
+    topologicalSortRec(result, next, visited);
+  }
+  result.unshift(node.system);
 }
 
-function orderSort(a: System, b: System): number {
-  return a.order - b.order;
-}
+type Node = {
+  next: SystemClass[];
+  visited: boolean;
+  system: System;
+};

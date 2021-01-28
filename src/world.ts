@@ -10,12 +10,11 @@ import { ComponentClass, Constructor, SystemClass } from './types';
 import { createUUID } from './utils';
 
 export class World<E extends Entity = Entity> {
-
   private _entities: Map<string, E>;
   private _components: ComponentManager;
   private _archetypes: ArchetypeManager;
   private _systems: SystemManager;
-  private _EntityClass: EntityClass<E>
+  private _EntityClass: EntityClass<E>;
 
   public constructor(options: Partial<WorldOptions<E>> = {}) {
     const {
@@ -52,32 +51,36 @@ export class World<E extends Entity = Entity> {
     this._systems.tick(delta);
   }
 
-  private _addEntity(entity: E): void {
-  }
+  private _addEntity(entity: E): void {}
 
   private _destroyEntity(entity: E): void {
     this._archetypes.removeEntity(entity);
   }
 
-  private _addComponent<T extends GenericComponent>(entity: Entity, Class: ComponentClass<T>): T {
+  private _addComponent<T extends GenericComponent>(
+    entity: Entity,
+    Class: ComponentClass<T>
+  ): T {
     // @todo: object pool.
     this._components.registerComponent(Class);
     this._archetypes.addComponent(entity, Class);
     return new Class();
   }
 
-  private _removeComponent<T extends GenericComponent>(entity: Entity, Class: ComponentClass<T>): T {
+  private _removeComponent<T extends GenericComponent>(
+    entity: Entity,
+    Class: ComponentClass<T>
+  ): T {
     // @todo: object pool.
     this._archetypes.removeComponent(entity, Class);
   }
-
 }
 
 export type WorldOptions<E extends Entity> = {
   maxComponentType: number;
   components: ComponentClass[];
   EntityClass: EntityClass<E>;
-}
+};
 
 export interface SystemRegisterOptions {
   group?: Constructor<SystemGroup>;

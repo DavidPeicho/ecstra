@@ -1,7 +1,6 @@
 import { Entity } from '../entity.js';
 
 export class Archetype {
-
   public readonly entities: Entity[];
   private readonly _hash: string;
 
@@ -13,5 +12,4 @@ export class Archetype {
   public get hash() {
     return this._hash;
   }
-
 }
