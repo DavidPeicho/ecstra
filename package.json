@@ -19,6 +19,7 @@
     "build": "npm run copy:to:dist && tsc",
     "start": "npm run copy:to:dist && tsc --watch",
     "lint": "eslint src",
+    "pretty": "prettier ./src/ --write",
     "copy:to:dist": "cp package.json lib && cp README.md lib"
   },
   "devDependencies": {
