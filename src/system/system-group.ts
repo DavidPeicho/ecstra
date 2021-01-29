@@ -1,21 +1,25 @@
+import { Entity } from '../entity';
 import { SystemClass } from '../types';
+import { World } from '../world';
 import { sortByOrder, System } from './system';
 
-export class SystemGroup {
+export class SystemGroup<E extends Entity = Entity, W extends World<E> = World<E>> {
   public static Name: string = 'Default';
 
   public order: number;
   public useTopologicalSorting: boolean;
 
-  private _systems: System[];
+  protected _world: W;
+  private _systems: System<E, W>[];
 
-  public constructor() {
+  public constructor(world: W) {
     this.order = 0;
     this.useTopologicalSorting = true;
+    this._world = world;
     this._systems = [];
   }
 
-  public add(system: System): void {
+  public add(system: System<E, W>): void {
     // @todo: checks it's not already added.
     this._systems.push(system);
   }
@@ -32,6 +36,10 @@ export class SystemGroup {
       this._sortTopological();
     }
     this._systems.sort(sortByOrder);
+  }
+
+  public get world(): World {
+    return this._world;
   }
 
   private _sortTopological(): void {

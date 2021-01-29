@@ -1,4 +1,4 @@
-import { ComponentClass, Nullable } from './types';
+import { Nullable } from './types';
 
 export class Component {
   public static readonly Name: Nullable<string> = null;

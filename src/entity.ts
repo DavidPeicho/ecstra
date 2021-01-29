@@ -1,4 +1,4 @@
-import { Archetype } from './archetype';
+import { Archetype } from './internals/archetype';
 import { GenericComponent } from './component';
 import { ComponentClass, Nullable, Option } from './types';
 import { World } from './world';

@@ -16,13 +16,15 @@ export class ComponentManager {
     return this._classToIdentifier.get(Class)!;
   }
 
-  public registerComponent(Class: ComponentClass): void {
+  public registerComponent(Class: ComponentClass): number {
     if (!this._classToIdentifier.has(Class)) {
       if (this._lastIdentifier >= this.maxComponentTypeCount) {
         throw new Error('reached maximum number of components registered.');
       }
-      this._classToIdentifier.set(Class, this._lastIdentifier++);
+      const identifier = this._lastIdentifier++;
+      this._classToIdentifier.set(Class, identifier);
     }
+    return this._classToIdentifier.get(Class)!;
   }
 }
 

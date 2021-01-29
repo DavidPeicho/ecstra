@@ -1,13 +1,16 @@
+import { Entity } from '../entity';
 import { sortByOrder, System } from '../system/system';
 import { SystemGroup } from '../system/system-group';
 import { Constructor, Option, SystemClass } from '../types';
-import { SystemRegisterOptions } from '../world';
+import { SystemRegisterOptions, World } from '../world';
 
-export class SystemManager {
-  private _groups: SystemGroup[];
+export class SystemManager<E extends Entity, W extends World<E>> {
+  private _world: W;
+  private _groups: SystemGroup<E, W>[];
 
-  public constructor() {
-    this._groups = [new SystemGroup()];
+  public constructor(world: W) {
+    this._world = world;
+    this._groups = [new SystemGroup(this._world)];
   }
 
   public register<T extends System>(

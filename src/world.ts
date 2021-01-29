@@ -3,13 +3,16 @@ import { process } from './constants';
 import { Entity } from './entity';
 import { ArchetypeManager } from './internals/archetype-manager';
 import { ComponentManager } from './internals/component-manager';
+import { QueryManager } from './internals/query-manager';
 import { SystemManager } from './internals/systems-manager';
+import { Query, QueryComponents } from './query';
 import { System } from './system/system';
 import { SystemGroup } from './system/system-group';
 import { ComponentClass, Constructor, SystemClass } from './types';
 import { createUUID } from './utils';
 
 export class World<E extends Entity = Entity> {
+  private _queries: QueryManager;
   private _entities: Map<string, E>;
   private _components: ComponentManager;
   private _archetypes: ArchetypeManager;
@@ -21,6 +24,7 @@ export class World<E extends Entity = Entity> {
       maxComponentType = 256,
       EntityClass = Entity as EntityClass<E>
     } = options;
+    this._queries = new QueryManager(this);
     this._entities = new Map();
     this._components = new ComponentManager({ maxComponentType });
     this._archetypes = new ArchetypeManager(this);
@@ -57,12 +61,22 @@ export class World<E extends Entity = Entity> {
     this._archetypes.removeEntity(entity);
   }
 
+  private _registerComponent<T extends GenericComponent>(
+    Class: ComponentClass<T>
+  ): number {
+    return this._components.registerComponent(Class);
+  }
+
+  private _requestQuery(components: QueryComponents): Query {
+    return this._queries.request(components);
+  }
+
   private _addComponent<T extends GenericComponent>(
     entity: Entity,
     Class: ComponentClass<T>
   ): T {
     // @todo: object pool.
-    this._components.registerComponent(Class);
+    this._registerComponent(Class);
     this._archetypes.addComponent(entity, Class);
     return new Class();
   }
