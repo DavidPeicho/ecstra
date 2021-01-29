@@ -1,18 +1,19 @@
+import { Entity } from '../entity';
 import { ComponentOperator, Query, QueryComponents } from '../query';
 import { ComponentClass } from '../types';
 import { World } from '../world';
 import { Archetype } from './archetype';
 
-export class QueryManager<W extends World = World> {
+export class QueryManager<E extends Entity, W extends World<E> = World<E>> {
   private _world: W;
-  private _queries: Map<string, Query>;
+  private _queries: Map<string, Query<E>>;
 
   public constructor(world: W) {
     this._world = world;
     this._queries = new Map();
   }
 
-  public request(components: QueryComponents): Query {
+  public request(components: QueryComponents): Query<E> {
     // Registers components if needed.
     // @todo: move in world to regroup those behaviours that create side effects.
     for (const comp of components) {
@@ -22,13 +23,13 @@ export class QueryManager<W extends World = World> {
     const id = this._getQueryIdentifier(components);
     if (!this._queries.has(id)) {
       // @todo: what happens when a system is unregistered?
-      const query = new Query(components);
+      const query = new Query<E>(components);
       this._queries.set(id, query);
     }
     return this._queries.get(id)!;
   }
 
-  public addArchetype(archetype: Archetype): void {
+  public addArchetype(archetype: Archetype<E>): void {
     const queries = this._queries;
     for (const [ _, query ] of queries) {
       if (query.matches(archetype)) {
@@ -37,7 +38,7 @@ export class QueryManager<W extends World = World> {
     }
   }
 
-  public removeArchetype(archetype: Archetype): void {
+  public removeArchetype(archetype: Archetype<E>): void {
   }
 
   private _getQueryIdentifier(components: QueryComponents): string {

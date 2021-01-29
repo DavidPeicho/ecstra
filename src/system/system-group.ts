@@ -6,20 +6,25 @@ import { sortByOrder, System } from './system';
 export class SystemGroup<E extends Entity = Entity, W extends World<E> = World<E>> {
   public static Name: string = 'Default';
 
+  public enabled: boolean;
   public order: number;
   public useTopologicalSorting: boolean;
 
-  protected _world: W;
-  private _systems: System<E, W>[];
+  /**
+   * @hidden
+   */
+  private _world: W;
+  protected _systems: System<E>[];
 
   public constructor(world: W) {
+    this.enabled = true;
     this.order = 0;
     this.useTopologicalSorting = true;
     this._world = world;
     this._systems = [];
   }
 
-  public add(system: System<E, W>): void {
+  public add(system: System<E>): void {
     // @todo: checks it's not already added.
     this._systems.push(system);
   }
@@ -27,7 +32,9 @@ export class SystemGroup<E extends Entity = Entity, W extends World<E> = World<E
   public tick(delta: number): void {
     const systems = this._systems;
     for (const system of systems) {
-      system.tick(delta);
+      if (system.enabled) {
+        system.tick(delta);
+      }
     }
   }
 
@@ -36,10 +43,6 @@ export class SystemGroup<E extends Entity = Entity, W extends World<E> = World<E
       this._sortTopological();
     }
     this._systems.sort(sortByOrder);
-  }
-
-  public get world(): World {
-    return this._world;
   }
 
   private _sortTopological(): void {
@@ -70,6 +73,10 @@ export class SystemGroup<E extends Entity = Entity, W extends World<E> = World<E
       }
       topologicalSortRec(systems, Class, nodes);
     }
+  }
+
+  public get world(): W {
+    return this._world;
   }
 }
 

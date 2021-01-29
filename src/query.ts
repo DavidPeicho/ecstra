@@ -11,9 +11,8 @@ export function Not(Class: ComponentClass) {
   return { Class, kind: QueryComponentOperatorKind.Not, isOperator: true };
 }
 
-export class Query {
-  private _archetypes: Archetype[];
-
+export class Query<E extends Entity> {
+  private _archetypes: Archetype<E>[];
   private _classes: ComponentClass[];
   private _notClasses: ComponentClass[];
 
@@ -52,7 +51,7 @@ export class Query {
     }
   }
 
-  public matches(archetype: Archetype): boolean {
+  public matches(archetype: Archetype<E>): boolean {
     const notClasses = this._notClasses;
     for (const not of notClasses) {
       if (archetype.components.has(not)) {

@@ -3,42 +3,42 @@ import { GenericComponent } from './component';
 import { ComponentClass, Nullable, Option } from './types';
 import { World } from './world';
 
+
 export enum Accessor {
   Read = 'read',
   Write = 'write'
 }
 
-export class Entity<W extends World = World> {
+export class Entity {
   public readonly id!: string;
 
   public readonly _components: Map<ComponentClass, GenericComponent>;
-  private readonly _internals: EntityInternals<W>;
+  private _world: World;
+  private _archetype: Nullable<Archetype<this>>;
 
-  public constructor(world: W, id: string) {
+  public constructor(world: World, id: string) {
     this.id = id;
     this._components = new Map();
-    this._internals = { archetype: null, world };
+    this._world = world;
+    this._archetype = null;
   }
 
   public destroy(): void {
-    this._internals.world['_destroyEntity'](this);
+    this._world._onEntityDestroyed(this);
   }
 
   public addComponent<T extends GenericComponent>(
     Class: ComponentClass<T>
   ): this {
-    // @todo: check in dev mode for duplicate.
-    // this._components.set(Class, comp);
-    this._internals.world['_addComponent'](this, Class);
+    this._world._onAddComponentToEntity(this, Class);
     return this;
   }
 
   public removeComponent<T extends GenericComponent>(
     Class: ComponentClass<T>
   ): this {
-    // @todo: check in dev mode for non-existing comp.
     if (this._components.has(Class)) {
-      this._internals.world['_removeComponent'](this, Class);
+      this._world._onRemoveComponentFromEntity(this, Class);
       this._components.delete(Class);
     }
     return this;
@@ -63,9 +63,8 @@ export class Entity<W extends World = World> {
   public hasComponent(Class: ComponentClass): boolean {
     return this._components.has(Class);
   }
-}
 
-type EntityInternals<WorldType> = {
-  archetype: Nullable<Archetype>;
-  world: WorldType;
-};
+  public get archetype(): Nullable<Archetype<this>> {
+    return this._archetype;
+  }
+}

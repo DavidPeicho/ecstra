@@ -10,16 +10,18 @@ export abstract class System<E extends Entity = Entity, W extends World<E> = Wor
   public static readonly updateAfter?: SystemClass[];
   public static readonly updateBefore?: SystemClass[];
 
+  public enabled: boolean;
   public order: number;
   public topologicalOrder: number;
 
   protected queries: {
-    [ key: string ]: Query;
+    [ key: string ]: Query<E>;
   };
 
   private _group: SystemGroup<E, W>;
 
   public constructor(options: SystemOptions<E, W>) {
+    this.enabled = true;
     this.order = 0;
     this.topologicalOrder = 0;
     this.queries = {};

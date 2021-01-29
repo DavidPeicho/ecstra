@@ -13,13 +13,13 @@ export class SystemManager<E extends Entity, W extends World<E>> {
     this._groups = [new SystemGroup(this._world)];
   }
 
-  public register<T extends System>(
+  public register<T extends System<E, W>>(
     Class: SystemClass<T>,
     opts: SystemRegisterOptions = {}
   ): this {
     const { group = Class.group ?? SystemGroup } = opts;
     let groupInstance = this._groups.find((g: SystemGroup) => {
-      return (g.constructor as Constructor<SystemGroup>) === group;
+      return (g.constructor as Constructor<SystemGroup<E, W>>) === group;
     });
     if (!groupInstance) {
       groupInstance = new group();
@@ -32,7 +32,9 @@ export class SystemManager<E extends Entity, W extends World<E>> {
   public tick(delta: number): void {
     const groups = this._groups;
     for (const group of groups) {
-      group.tick(delta);
+      if (group.enabled) {
+        group.tick(delta);
+      }
     }
   }
 

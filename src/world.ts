@@ -1,34 +1,31 @@
-import { GenericComponent } from './component';
-import { process } from './constants';
 import { Entity } from './entity';
 import { ArchetypeManager } from './internals/archetype-manager';
 import { ComponentManager } from './internals/component-manager';
 import { QueryManager } from './internals/query-manager';
-import { SystemManager } from './internals/systems-manager';
-import { Query, QueryComponents } from './query';
+import { SystemManager } from './internals/system-manager';
 import { System } from './system/system';
 import { SystemGroup } from './system/system-group';
 import { ComponentClass, Constructor, SystemClass } from './types';
-import { createUUID } from './utils';
 
 export class World<E extends Entity = Entity> {
-  private _queries: QueryManager;
-  private _entities: Map<string, E>;
-  private _components: ComponentManager;
-  private _archetypes: ArchetypeManager;
-  private _systems: SystemManager;
-  private _EntityClass: EntityClass<E>;
+
+  protected readonly _archetypes: ArchetypeManager;
+  protected readonly _queries: QueryManager;
+  protected readonly _entities: Map<string, E>;
+  protected readonly _components: ComponentManager;
+  protected readonly _systems: SystemManager<E, this>;
+  protected readonly _EntityClass: EntityClass;
 
   public constructor(options: Partial<WorldOptions<E>> = {}) {
     const {
       maxComponentType = 256,
       EntityClass = Entity as EntityClass<E>
     } = options;
+    this._archetypes = new ArchetypeManager(this);
     this._queries = new QueryManager(this);
+    this._systems = new SystemManager(this);
     this._entities = new Map();
     this._components = new ComponentManager({ maxComponentType });
-    this._archetypes = new ArchetypeManager(this);
-    this._systems = new SystemManager();
     this._EntityClass = EntityClass;
   }
 
@@ -36,6 +33,7 @@ export class World<E extends Entity = Entity> {
     Class: SystemClass<T>,
     opts: SystemRegisterOptions
   ): this {
+    this._systems.add(Class, opts);
     return this;
   }
 
@@ -55,38 +53,46 @@ export class World<E extends Entity = Entity> {
     this._systems.tick(delta);
   }
 
-  private _addEntity(entity: E): void {}
-
-  private _destroyEntity(entity: E): void {
-    this._archetypes.removeEntity(entity);
+  public getComponentId(Class: ComponentClass): number {
+    return this._components.getIdentifier(Class);
   }
 
-  private _registerComponent<T extends GenericComponent>(
+  public get maxComponentTypeCount(): number {
+    return this._components.maxComponentTypeCount;
+  }
+
+  public _registerComponent<T extends GenericComponent>(
     Class: ComponentClass<T>
   ): number {
     return this._components.registerComponent(Class);
   }
 
-  private _requestQuery(components: QueryComponents): Query {
+  public _requestQuery(components: QueryComponents): Query {
     return this._queries.request(components);
   }
 
-  private _addComponent<T extends GenericComponent>(
+  public _onEntityDestroyed(entity: E): void {
+    this._archetypes.removeEntity(entity);
+  }
+
+  public _onRemoveComponentFromEntity<T extends GenericComponent>(
     entity: Entity,
     Class: ComponentClass<T>
   ): T {
     // @todo: object pool.
-    this._registerComponent(Class);
+    // @todo: check in dev mode for duplicate.
+    this.registerComponent(Class);
     this._archetypes.addComponent(entity, Class);
     return new Class();
   }
 
-  private _removeComponent<T extends GenericComponent>(
+  public _onAddComponentToEntity<T extends GenericComponent>(
     entity: Entity,
     Class: ComponentClass<T>
-  ): T {
+  ): void {
     // @todo: object pool.
     this._archetypes.removeComponent(entity, Class);
+
   }
 }
 

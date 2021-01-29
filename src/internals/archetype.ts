@@ -1,8 +1,8 @@
 import { Entity } from '../entity.js';
 import { ComponentClass } from '../types.js';
 
-export class Archetype {
-  public readonly entities: Entity[];
+export class Archetype<E extends Entity> {
+  public readonly entities: E[];
   private readonly _components: Set<ComponentClass>;
   private readonly _hash: string;
 
