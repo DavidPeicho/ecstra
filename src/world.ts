@@ -5,10 +5,17 @@ import { QueryManager } from './internals/query-manager.js';
 import { SystemManager } from './internals/system-manager.js';
 import { System } from './system.js';
 import { SystemGroup } from './system-group.js';
-import { ComponentClass, Constructor, EntityOf, SystemClass } from './types';
 import { createUUID } from './utils.js';
-import { GenericComponent } from './component.js';
+import { Component, GenericComponent } from './component.js';
 import { Query, QueryComponents } from './query.js';
+import { Pool } from './pool.js';
+import {
+  ComponentClass,
+  Constructor,
+  EntityOf,
+  Option,
+  SystemClass
+} from './types';
 
 export class World<E extends Entity = Entity> {
 
@@ -22,13 +29,17 @@ export class World<E extends Entity = Entity> {
   public constructor(options: Partial<WorldOptions<E>> = {}) {
     const {
       maxComponentType = 256,
+      useManualPooling = true,
       EntityClass = Entity as EntityClass<E>
     } = options;
     this._archetypes = new ArchetypeManager(this);
     this._queries = new QueryManager(this);
     this._systems = new SystemManager(this);
     this._entities = new Map();
-    this._components = new ComponentManager({ maxComponentType });
+    this._components = new ComponentManager({
+      maxComponentType,
+      useManualPooling
+    });
     this._EntityClass = EntityClass;
   }
 
@@ -55,6 +66,19 @@ export class World<E extends Entity = Entity> {
     this._systems.tick(delta);
   }
 
+  public setComponentPool<P extends Pool<any>>(
+    Class: ComponentClass<ComponentOf<P>>,
+    pool: P
+  ): this {
+    // @todo.
+    return this;
+  }
+
+  public getComponentPool<C extends Component>(Class: ComponentClass<C>): Option<Pool<C>> {
+    // @todo.
+    return undefined;
+  }
+
   public getComponentId(Class: ComponentClass): number {
     return this._components.getIdentifier(Class);
   }
@@ -77,6 +101,15 @@ export class World<E extends Entity = Entity> {
     this._archetypes.removeEntity(entity);
   }
 
+  public _onAddComponentToEntity<T extends GenericComponent>(
+    entity: EntityOf<this>,
+    Class: ComponentClass<T>
+  ): void {
+    // @todo: object pool.
+    this._archetypes.removeComponent(entity, Class);
+
+  }
+
   public _onRemoveComponentFromEntity<T extends GenericComponent>(
     entity: EntityOf<this>,
     Class: ComponentClass<T>
@@ -87,20 +120,13 @@ export class World<E extends Entity = Entity> {
     this._archetypes.addComponent(entity, Class);
     return new Class();
   }
-
-  public _onAddComponentToEntity<T extends GenericComponent>(
-    entity: EntityOf<this>,
-    Class: ComponentClass<T>
-  ): void {
-    // @todo: object pool.
-    this._archetypes.removeComponent(entity, Class);
-
-  }
 }
 
 export type WorldOptions<E extends Entity> = {
-  maxComponentType: number;
+  systems: SystemClass[];
   components: ComponentClass[];
+  maxComponentType: number;
+  useManualPooling: boolean;
   EntityClass: EntityClass<E>;
 };
 
@@ -109,4 +135,5 @@ export interface SystemRegisterOptions<WorldType extends World> {
   order?: number;
 }
 
+export type ComponentOf<P> = P extends Pool<infer C> ? C : never;
 export type EntityClass<E extends Entity> = Constructor<E>;

@@ -1,4 +1,4 @@
-import { GenericComponent } from './component';
+import { GenericComponent, Properties } from './component';
 import { StaticQueries, System } from './system';
 import { SystemGroup } from './system-group';
 import { World } from './world';
@@ -22,8 +22,7 @@ export type SystemClass<T extends System = System> = Constructor<T> & {
 export type ComponentClass<
   T extends GenericComponent = GenericComponent
 > = Constructor<T> & {
-  Identifier: number;
-  Name: Nullable<string>;
+  Name?: string;
+  Properties?: Properties
 };
-
 

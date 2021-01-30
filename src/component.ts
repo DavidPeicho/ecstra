@@ -1,35 +1,37 @@
 import { Property } from './property.js';
-import { Nullable } from './types';
+import { ComponentClass } from './types';
 
-export class Component<CompClass extends typeof Component = typeof Component> {
-  public static readonly Name: Nullable<string> = null;
+export class Component {
+  public static readonly Name?: string;
   public static readonly Properties?: Properties;
   public readonly isComponent!: true;
 
   public constructor() {
     Object.defineProperty(this, 'isComponent', { value: true });
 
-    const properties = (this.constructor as CompClass).Properties;
+    const properties = this._getClass().Properties;
     for (const name in properties) {
       this[name as keyof this] = properties[name].cloneDefault();
     }
   }
 
   public copy(source: PropertiesOf<this>, useDefault = false): this {
-    const properties = (this.constructor as CompClass).Properties;
+    const properties = this._getClass().Properties;
     // @todo: inverse loop, should loop on source instead.
     for (const name in properties) {
+      const prop = properties[name];
       if (source.hasOwnProperty(name)) {
-        const prop = properties[name];
         const value = source[name as keyof this];
         this[name as keyof this] = prop.copy(value, this[name as keyof this]);
+      } else if (useDefault) {
+        this[name as keyof this] = prop.copyDefault(this[name as keyof this]);
       }
     }
     return this;
   }
 
   public clone(source: this): this {
-    const Class = (this.constructor as CompClass);
+    const Class = this._getClass();
     return (new Class() as this).copy(source);
   }
 
@@ -37,19 +39,30 @@ export class Component<CompClass extends typeof Component = typeof Component> {
     return this.copy(source, true);
   }
 
+  private _getClass(): ComponentClass<this> {
+    return this.constructor as ComponentClass<this>;
+  }
+
+}
+
+// @todo: up to one component per world on a dummy entity.
+export class SingletonComponent extends Component {
+  public readonly isSingletonComponent!: true;
+  public constructor() {
+    super();
+    Object.defineProperty(this, 'isSingletonComponent', { value: true });
+  }
 }
 
 export class TagComponent {
-  public static readonly Name: string | null = null;
+  public static readonly Name?: string;
+
   public readonly isTagComponent!: true;
 
   public constructor() {
     Object.defineProperty(this, 'isTagComponent', { value: true });
   }
 }
-
-// @todo: up to one component per world on a dummy entity.
-export class SingletonComponent {}
 
 export type PropertiesOf<CompType extends Component> = {
   [ K in keyof CompType ]: any;

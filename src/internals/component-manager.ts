@@ -2,12 +2,15 @@ import { ComponentClass } from '../types';
 
 export class ComponentManager {
   public readonly maxComponentTypeCount: number;
+
+  private readonly _useManualPooling: boolean;
   private _lastIdentifier: number;
   private _classToIdentifier: Map<ComponentClass, number>;
 
   public constructor(options: ComponentManagerOptions) {
-    const { maxComponentType } = options;
+    const { maxComponentType, useManualPooling } = options;
     this.maxComponentTypeCount = maxComponentType;
+    this._useManualPooling = useManualPooling;
     this._lastIdentifier = 0;
     this._classToIdentifier = new Map();
   }
@@ -30,4 +33,5 @@ export class ComponentManager {
 
 export type ComponentManagerOptions = {
   maxComponentType: number;
+  useManualPooling: boolean;
 };
