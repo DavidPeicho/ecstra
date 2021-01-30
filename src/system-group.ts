@@ -1,9 +1,8 @@
-import { Entity } from '../entity';
-import { SystemClass } from '../types';
-import { World } from '../world';
-import { sortByOrder, System } from './system';
+import { World } from './world.js';
+import { sortByOrder, System } from './system.js';
+import { SystemClass } from './types';
 
-export class SystemGroup<E extends Entity = Entity, W extends World<E> = World<E>> {
+export class SystemGroup<WorldType extends World = World> {
   public static Name: string = 'Default';
 
   public enabled: boolean;
@@ -13,10 +12,10 @@ export class SystemGroup<E extends Entity = Entity, W extends World<E> = World<E
   /**
    * @hidden
    */
-  private _world: W;
-  protected _systems: System<E>[];
+  private _world: WorldType;
+  protected _systems: System<WorldType>[];
 
-  public constructor(world: W) {
+  public constructor(world: WorldType) {
     this.enabled = true;
     this.order = 0;
     this.useTopologicalSorting = true;
@@ -24,7 +23,7 @@ export class SystemGroup<E extends Entity = Entity, W extends World<E> = World<E
     this._systems = [];
   }
 
-  public add(system: System<E>): void {
+  public add(system: System<WorldType>): void {
     // @todo: checks it's not already added.
     this._systems.push(system);
   }
@@ -75,7 +74,7 @@ export class SystemGroup<E extends Entity = Entity, W extends World<E> = World<E
     }
   }
 
-  public get world(): W {
+  public get world(): WorldType {
     return this._world;
   }
 }

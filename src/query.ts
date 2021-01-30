@@ -1,5 +1,5 @@
-import { Entity } from './entity';
-import { Archetype } from './internals/archetype';
+import { Entity } from './entity.js';
+import { Archetype } from './internals/archetype.js';
 import { ComponentClass } from './types';
 
 enum QueryComponentOperatorKind {
@@ -11,7 +11,7 @@ export function Not(Class: ComponentClass) {
   return { Class, kind: QueryComponentOperatorKind.Not, isOperator: true };
 }
 
-export class Query<E extends Entity> {
+export class Query<E extends Entity = Entity> {
   private _archetypes: Archetype<E>[];
   private _classes: ComponentClass[];
   private _notClasses: ComponentClass[];

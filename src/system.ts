@@ -1,10 +1,9 @@
-import { Entity } from '../entity';
-import { Query, QueryComponents } from '../query';
-import { Constructor, SystemClass } from '../types';
-import { World } from '../world';
-import { SystemGroup } from './system-group';
+import { Query, QueryComponents } from './query.js';
+import { SystemGroup } from './system-group.js';
+import { World } from './world.js';
+import { Constructor, EntityOf, SystemClass } from './types';
 
-export abstract class System<E extends Entity = Entity, W extends World<E> = World<E>> {
+export abstract class System<WorldType extends World = World> {
   public static readonly queries?: StaticQueries;
   public static readonly group?: Constructor<SystemGroup>;
   public static readonly updateAfter?: SystemClass[];
@@ -15,12 +14,12 @@ export abstract class System<E extends Entity = Entity, W extends World<E> = Wor
   public topologicalOrder: number;
 
   protected queries: {
-    [ key: string ]: Query<E>;
+    [ key: string ]: Query<EntityOf<WorldType>>;
   };
 
-  private _group: SystemGroup<E, W>;
+  private _group: SystemGroup<WorldType>;
 
-  public constructor(options: SystemOptions<E, W>) {
+  public constructor(options: SystemOptions<WorldType>) {
     this.enabled = true;
     this.order = 0;
     this.topologicalOrder = 0;
@@ -53,8 +52,8 @@ export function sortByOrder(a: Orderable, b: Orderable): number {
   return a.order - b.order;
 }
 
-export interface SystemOptions<E extends Entity, W extends World<E>> {
-  group: SystemGroup<E, W>;
+export interface SystemOptions<WorldType extends World = World> {
+  group: SystemGroup<WorldType>;
   params: any;
 }
 

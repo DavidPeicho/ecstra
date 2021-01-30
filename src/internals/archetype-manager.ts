@@ -1,26 +1,26 @@
 import { Entity } from '../entity.js';
-import { ComponentClass } from '../types.js';
 import { World } from '../world.js';
 import { Archetype } from './archetype.js';
+import { ComponentClass, EntityOf } from '../types';
 
-export class ArchetypeManager<E extends Entity, W extends World<E> = World<E>> {
-  private readonly _world: W;
-  private readonly _archetypes: Map<string, Archetype<E>>;
+export class ArchetypeManager<WorldType extends World> {
+  private readonly _world: WorldType;
+  private readonly _archetypes: Map<string, Archetype<EntityOf<WorldType>>>;
   private readonly _emptyHash: string;
 
-  public constructor(world: W) {
+  public constructor(world: WorldType) {
     this._archetypes = new Map();
     this._world = world;
     this._emptyHash = '0'.repeat(world.maxComponentTypeCount);
   }
 
-  public addComponent(entity: E, Class: ComponentClass): void {
+  public addComponent(entity: EntityOf<WorldType>, Class: ComponentClass): void {
     // @todo: is it worth to wait another tick to move the entity from the
     // previous to the next archetype?
     this.needArchetypeUpdate(entity, Class);
   }
 
-  public removeComponent(entity: E, Class: ComponentClass): void {
+  public removeComponent(entity: EntityOf<WorldType>, Class: ComponentClass): void {
     this.needArchetypeUpdate(entity, Class);
   }
 
@@ -32,7 +32,7 @@ export class ArchetypeManager<E extends Entity, W extends World<E> = World<E>> {
     }
   }
 
-  public needArchetypeUpdate(entity: E, Class: ComponentClass): void {
+  public needArchetypeUpdate(entity: EntityOf<WorldType>, Class: ComponentClass): void {
     const compId = this._world['_components'].getIdentifier(Class);
 
     const prevArchetype = entity.archetype;
@@ -47,7 +47,8 @@ export class ArchetypeManager<E extends Entity, W extends World<E> = World<E>> {
     const newArchetypeHash = buildHash(prevArchetypeHash, hashEntry, compId);
 
     if (!this._archetypes.has(newArchetypeHash)) {
-      const archetype = new Archetype<E>(newArchetypeHash);
+      const classes = entity.componentClasses;
+      const archetype = new Archetype<EntityOf<WorldType>>(classes, newArchetypeHash);
       this._archetypes.set(newArchetypeHash, archetype);
     }
 

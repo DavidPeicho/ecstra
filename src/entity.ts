@@ -1,8 +1,7 @@
-import { Archetype } from './internals/archetype';
-import { GenericComponent } from './component';
+import { Archetype } from './internals/archetype.js';
+import { GenericComponent } from './component.js';
+import { World } from './world.js';
 import { ComponentClass, Nullable, Option } from './types';
-import { World } from './world';
-
 
 export enum Accessor {
   Read = 'read',
@@ -62,6 +61,10 @@ export class Entity {
 
   public hasComponent(Class: ComponentClass): boolean {
     return this._components.has(Class);
+  }
+
+  public get componentClasses(): ComponentClass[] {
+    return Array.from(this._components.keys());
   }
 
   public get archetype(): Nullable<Archetype<this>> {

@@ -1,19 +1,18 @@
-import { Entity } from '../entity';
-import { ComponentOperator, Query, QueryComponents } from '../query';
-import { ComponentClass } from '../types';
-import { World } from '../world';
-import { Archetype } from './archetype';
+import { ComponentOperator, Query, QueryComponents } from '../query.js';
+import { World } from '../world.js';
+import { Archetype } from './archetype.js';
+import { ComponentClass, EntityOf } from '../types';
 
-export class QueryManager<E extends Entity, W extends World<E> = World<E>> {
-  private _world: W;
-  private _queries: Map<string, Query<E>>;
+export class QueryManager<WorldType extends World> {
+  private _world: WorldType;
+  private _queries: Map<string, Query<EntityOf<WorldType>>>;
 
-  public constructor(world: W) {
+  public constructor(world: WorldType) {
     this._world = world;
     this._queries = new Map();
   }
 
-  public request(components: QueryComponents): Query<E> {
+  public request(components: QueryComponents): Query<EntityOf<WorldType>> {
     // Registers components if needed.
     // @todo: move in world to regroup those behaviours that create side effects.
     for (const comp of components) {
@@ -23,13 +22,13 @@ export class QueryManager<E extends Entity, W extends World<E> = World<E>> {
     const id = this._getQueryIdentifier(components);
     if (!this._queries.has(id)) {
       // @todo: what happens when a system is unregistered?
-      const query = new Query<E>(components);
+      const query = new Query<EntityOf<WorldType>>(components);
       this._queries.set(id, query);
     }
     return this._queries.get(id)!;
   }
 
-  public addArchetype(archetype: Archetype<E>): void {
+  public addArchetype(archetype: Archetype<EntityOf<WorldType>>): void {
     const queries = this._queries;
     for (const [ _, query ] of queries) {
       if (query.matches(archetype)) {
@@ -38,7 +37,7 @@ export class QueryManager<E extends Entity, W extends World<E> = World<E>> {
     }
   }
 
-  public removeArchetype(archetype: Archetype<E>): void {
+  public removeArchetype(archetype: Archetype<EntityOf<WorldType>>): void {
   }
 
   private _getQueryIdentifier(components: QueryComponents): string {

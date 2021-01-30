@@ -1,6 +1,12 @@
 import { GenericComponent } from './component';
-import { StaticQueries, System } from './system/system';
-import { SystemGroup } from './system/system-group';
+import { StaticQueries, System } from './system';
+import { SystemGroup } from './system-group';
+import { World } from './world';
+
+export type Nullable<T> = T | null;
+export type Option<T> = T | undefined;
+
+export type EntityOf<W> = W extends World<infer E> ? E : never;
 
 export type Constructor<T> = new (...args: unknown[]) => T;
 
@@ -20,5 +26,4 @@ export type ComponentClass<
   Name: Nullable<string>;
 };
 
-export type Nullable<T> = T | null;
-export type Option<T> = T | undefined;
+

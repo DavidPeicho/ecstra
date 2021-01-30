@@ -1,28 +1,29 @@
-import { Entity } from '../entity';
-import { sortByOrder, System } from '../system/system';
-import { SystemGroup } from '../system/system-group';
-import { Constructor, Option, SystemClass } from '../types';
-import { SystemRegisterOptions, World } from '../world';
+import { sortByOrder, System } from '../system.js';
+import { SystemGroup } from '../system-group.js';
+import { SystemRegisterOptions, World } from '../world.js';
+import { Constructor, Option, SystemClass, SystemGroupClass } from '../types';
 
-export class SystemManager<E extends Entity, W extends World<E>> {
-  private _world: W;
-  private _groups: SystemGroup<E, W>[];
+export class SystemManager<WorldType extends World> {
+  private _world: WorldType;
+  private _groups: SystemGroup<WorldType>[];
 
-  public constructor(world: W) {
+  public constructor(world: WorldType) {
     this._world = world;
     this._groups = [new SystemGroup(this._world)];
   }
 
-  public register<T extends System<E, W>>(
+  public register<T extends System<WorldType>>(
     Class: SystemClass<T>,
-    opts: SystemRegisterOptions = {}
+    opts: SystemRegisterOptions<WorldType> = {}
   ): this {
-    const { group = Class.group ?? SystemGroup } = opts;
+    const {
+      group = (Class.group ?? SystemGroup) as SystemGroupClass<SystemGroup<WorldType>>
+    } = opts;
     let groupInstance = this._groups.find((g: SystemGroup) => {
-      return (g.constructor as Constructor<SystemGroup<E, W>>) === group;
+      return (g.constructor as Constructor<SystemGroup<WorldType>>) === group;
     });
     if (!groupInstance) {
-      groupInstance = new group();
+      groupInstance = new group(this._world);
     }
     groupInstance.add(new Class());
     groupInstance.sort();
