@@ -1,4 +1,5 @@
-import { GenericComponent, Properties } from './component';
+import { Component, Properties } from './component';
+import { ObjectPool } from './pool';
 import { StaticQueries, System } from './system';
 import { SystemGroup } from './system-group';
 import { World } from './world';
@@ -6,7 +7,9 @@ import { World } from './world';
 export type Nullable<T> = T | null;
 export type Option<T> = T | undefined;
 
+export type ComponentOf<P> = P extends ObjectPool<infer C> ? C : never;
 export type EntityOf<W> = W extends World<infer E> ? E : never;
+export type PropertiesOf<C extends Component> = Partial<Omit<C, keyof Component>>;
 
 export type Constructor<T> = new (...args: unknown[]) => T;
 
@@ -19,10 +22,16 @@ export type SystemClass<T extends System = System> = Constructor<T> & {
   readonly updateAfter?: SystemClass[];
   readonly updateBefore?: SystemClass[];
 };
+
 export type ComponentClass<
-  T extends GenericComponent = GenericComponent
+  T extends Component = Component
 > = Constructor<T> & {
   Name?: string;
-  Properties?: Properties
 };
 
+export type DataComponentClass<
+  T extends Component = Component
+> = Constructor<T> & {
+  Name?: string;
+  Properties?: Properties;
+};

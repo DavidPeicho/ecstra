@@ -1,12 +1,12 @@
 import { Constructor } from "./types";
 
-export class Pool<T> {
+export class DefaultPool<T> {
   protected readonly _class;
   protected readonly _list: (T | null)[];
   protected readonly _growPercentage: number;
   protected _freeSlot: number;
 
-  public constructor(Class: Constructor<T>, options: Partial<PoolOptions<T>> = {}) {
+  public constructor(Class: Constructor<T>, options: Partial<DefaultPoolOptions<T>> = {}) {
     this._class = Class;
     this._list = [];
     this._growPercentage = options.growthPercentage ?? 0.2;
@@ -51,7 +51,14 @@ export class Pool<T> {
   }
 }
 
-interface PoolOptions<T> {
+export interface ObjectPool<T> {
+  destroy?: () => void;
+  acquire(): T;
+  release(value: T): void;
+  expand(count: number): void;
+}
+
+interface DefaultPoolOptions<T> {
   initialCount: number;
   growthPercentage: number;
 }

@@ -1,62 +1,54 @@
 import { Archetype } from './internals/archetype.js';
-import { GenericComponent } from './component.js';
+import { Component } from './component.js';
 import { World } from './world.js';
-import { ComponentClass, Nullable, Option } from './types';
-
-export enum Accessor {
-  Read = 'read',
-  Write = 'write'
-}
+import { ComponentClass, Nullable, Option, PropertiesOf } from './types';
 
 export class Entity {
   public readonly id!: string;
 
-  public readonly _components: Map<ComponentClass, GenericComponent>;
+  public readonly _components: Map<ComponentClass, Component>;
+  public readonly _pendingComponents: Component[];
+
   private _world: World;
   private _archetype: Nullable<Archetype<this>>;
+  private _destroyed: boolean;
 
   public constructor(world: World, id: string) {
     this.id = id;
     this._components = new Map();
+    this._pendingComponents = [];
     this._world = world;
     this._archetype = null;
+    this._destroyed = false;
   }
 
   public destroy(): void {
-    this._world._onEntityDestroyed(this);
+    this._world._destroyEntity(this);
+    this._destroyed = true;
   }
 
-  public addComponent<T extends GenericComponent>(
-    Class: ComponentClass<T>
-  ): this {
-    this._world._onAddComponentToEntity(this, Class);
-    return this;
-  }
-
-  public removeComponent<T extends GenericComponent>(
-    Class: ComponentClass<T>
-  ): this {
-    if (this._components.has(Class)) {
-      this._world._onRemoveComponentFromEntity(this, Class);
-      this._components.delete(Class);
-    }
-    return this;
-  }
-
-  public getComponent<T extends GenericComponent>(
+  public addComponent<T extends Component>(
     Class: ComponentClass<T>,
-    accessor?: Accessor
-  ): Option<T> {
+    opts?: PropertiesOf<T>
+  ): this {
+    this._world._addComponentRequest(this, Class, opts);
+    return this;
+  }
+
+  public removeComponent<T extends Component>(
+    Class: ComponentClass<T>
+  ): this {
+    this._world._removeComponentRequest(this, Class);
+    return this;
+  }
+
+  public read<T extends Component>(Class: ComponentClass<T>): Option<T> {
     return this._components.get(Class) as Option<T>;
   }
 
-  public getOrCreateComponent<T extends GenericComponent>(
-    Class: ComponentClass<T>
-  ): T {
-    if (!this.hasComponent) {
-      this.addComponent(Class);
-    }
-    return this.getComponent(Class)!;
+  public write<T extends Component>(Class: ComponentClass<T>): Option<T> {
+    // @todo: retrieve component in write mode
+    return this._components.get(Class) as Option<T>;
   }
 
   public hasComponent(Class: ComponentClass): boolean {
@@ -69,5 +61,13 @@ export class Entity {
 
   public get archetype(): Nullable<Archetype<this>> {
     return this._archetype;
+  }
+
+  public get destroyed(): boolean {
+    return this._destroyed;
+  }
+
+  public get hasPendingComponents(): boolean {
+    return this._pendingComponents.length > 0;
   }
 }

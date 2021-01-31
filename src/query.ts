@@ -3,8 +3,7 @@ import { Archetype } from './internals/archetype.js';
 import { ComponentClass } from './types';
 
 enum QueryComponentOperatorKind {
-  Not = 'not',
-  Optional = 'optional'
+  Not = 'not'
 }
 
 export function Not(Class: ComponentClass) {
@@ -31,20 +30,20 @@ export class Query<E extends Entity = Entity> {
 
   public execute(cb: QueryExecutorVoid): void {
     const archetypes = this._archetypes;
-    for (const arch of archetypes) {
-      const entities = arch.entities;
-      for (const entity of entities) {
-        cb(entity);
+    for (let archId = archetypes.length - 1; archId >= 0; --archId) {
+      const entities = archetypes[archId].entities;
+      for (let entityId = entities.length - 1; entityId >= 0; --entityId) {
+        cb(entities[entityId]);
       }
     }
   }
 
   public executeUntil(cb: QueryExecutor): void {
     const archetypes = this._archetypes;
-    for (const arch of archetypes) {
-      const entities = arch.entities;
-      for (const entity of entities) {
-        if (cb(entity)) {
+    for (let archId = archetypes.length - 1; archId >= 0; --archId) {
+      const entities = archetypes[archId].entities;
+      for (let entityId = entities.length - 1; entityId >= 0; --entityId) {
+        if (cb(entities[entityId])) {
           return;
         }
       }

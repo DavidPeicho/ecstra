@@ -9,10 +9,7 @@ export class SystemGroup<WorldType extends World = World> {
   public order: number;
   public useTopologicalSorting: boolean;
 
-  /**
-   * @hidden
-   */
-  private _world: WorldType;
+  protected readonly _world: WorldType;
   protected _systems: System<WorldType>[];
 
   public constructor(world: WorldType) {
