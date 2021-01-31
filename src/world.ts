@@ -4,10 +4,9 @@ import { QueryManager } from './internals/query-manager.js';
 import { SystemManager } from './internals/system-manager.js';
 import { System } from './system.js';
 import { SystemGroup } from './system-group.js';
-import { createUUID } from './utils.js';
 import { Component } from './component.js';
 import { Query, QueryComponents } from './query.js';
-import { ObjectPool } from './pool.js';
+import { DefaultPool, ObjectPool } from './pool.js';
 import {
   ComponentClass,
   ComponentOf,
@@ -26,6 +25,7 @@ export class World<E extends Entity = Entity> {
   protected readonly _queries: QueryManager<this>;
   protected readonly _systems: SystemManager<this>;
   protected readonly _EntityClass: EntityClass<EntityOf<this>>;
+  protected _entityPool: Nullable<EntityPool<this>>;
 
   /** Public API. */
 
@@ -42,6 +42,7 @@ export class World<E extends Entity = Entity> {
       useManualPooling
     });
     this._EntityClass = EntityClass as EntityClass<EntityOf<this>>;
+    this._entityPool = !useManualPooling ? new DefaultPool(this._EntityClass) : null;
   }
 
   public register<T extends System<this>>(
@@ -52,13 +53,19 @@ export class World<E extends Entity = Entity> {
     return this;
   }
 
-  public create(id?: string): E {
-    id = id ?? createUUID();
+  public create(name?: string): E {
     // @todo: __DEV__ #define
     // if (this._entities.has(id)) {
     //   throw new Error(`found duplicated entity with id: '${id}'`);
     // }
-    const entity = new this._EntityClass(this, id);
+    let entity;
+    if (this._entityPool) {
+      entity = this._entityPool.acquire();
+      entity._pooled = true;
+      entity.name = name ?? null;
+    } else {
+      entity = new this._EntityClass(this, name);
+    }
     this._components.initEntity(entity);
     return entity;
   }
@@ -98,8 +105,17 @@ export class World<E extends Entity = Entity> {
    * @returns {Option<Entity>}
    * @memberof World
    */
-  public findById(id: string): Nullable<Entity> {
-    return this._components.findEntityById(id);
+  public findByName(name: string): Nullable<Entity> {
+    return this._components.findEntityByName(name);
+  }
+
+  public setEntityPool(pool: Nullable<EntityPool<this>>): this {
+    this._entityPool = pool;
+    return this;
+  }
+
+  public getEntityPool(): Option<Nullable<EntityPool<this>>> {
+    return this._entityPool;
   }
 
   public setComponentPool<P extends ObjectPool<any>>(
@@ -147,8 +163,11 @@ export class World<E extends Entity = Entity> {
    *
    * @param entity -
    */
-  public _destroyEntityRequest(entity: E): void {
+  public _destroyEntityRequest(entity: EntityOf<this>): void {
     this._components.destroyEntity(entity);
+    if (entity.pooled) {
+      this._entityPool?.release(entity);
+    }
   }
 
   /**
@@ -197,3 +216,5 @@ export interface SystemRegisterOptions<WorldType extends World> {
 }
 
 export type EntityClass<E extends Entity> = Constructor<E>;
+
+type EntityPool<WorldType extends World> = ObjectPool<EntityOf<WorldType>>;

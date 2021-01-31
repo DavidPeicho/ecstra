@@ -2,22 +2,42 @@ import { Archetype } from './internals/archetype.js';
 import { Component } from './component.js';
 import { World } from './world.js';
 import { ComponentClass, Nullable, Option, PropertiesOf } from './types';
+import { createUUID } from './utils.js';
 
 export class Entity {
-  public readonly id!: string;
+  public name: Nullable<string>;
 
   public readonly _components: Map<ComponentClass, Component>;
   public readonly _pendingComponents: Component[];
 
+  /**
+   * @hidden
+   */
+  public _pooled: boolean;
+
+  /**
+   * @hidden
+   */
   private _world: World;
+
+  /**
+   * @hidden
+   */
+  private readonly _id!: string;
+
+  /**
+   * @hidden
+   */
   private _archetype: Nullable<Archetype<this>>;
 
-  public constructor(world: World, id: string) {
-    this.id = id;
+  public constructor(world: World, name?: string) {
+    this.name = name ?? null;
+    this._id = createUUID();
     this._components = new Map();
     this._pendingComponents = [];
     this._world = world;
     this._archetype = null;
+    this._pooled = false;
   }
 
   public destroy(): void {
@@ -52,6 +72,10 @@ export class Entity {
     return this._components.has(Class);
   }
 
+  public get id(): string {
+    return this._id;
+  }
+
   public get componentClasses(): ComponentClass[] {
     return Array.from(this._components.keys());
   }
@@ -60,7 +84,7 @@ export class Entity {
     return this._archetype;
   }
 
-  public get hasPendingComponents(): boolean {
-    return this._pendingComponents.length > 0;
+  public get pooled(): boolean {
+    return this._pooled;
   }
 }

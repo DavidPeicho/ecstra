@@ -101,11 +101,11 @@ export class ComponentManager<WorldType extends World> {
     this._moveEntityToArchetype(entity, hash);
   }
 
-  public findEntityById(id: string): Nullable<Entity> {
+  public findEntityByName(name: string): Nullable<Entity> {
     for (const [ _, archetype ] of this._archetypes) {
       const entities = archetype.entities;
       for (const entity of entities) {
-        if (entity.id === id) {
+        if (entity.name === name) {
           return entity;
         }
       }
@@ -131,7 +131,7 @@ export class ComponentManager<WorldType extends World> {
 
   private _removeComponentsImmediate(entity: Entity, component: Component): void {
     const Class = component.constructor as ComponentClass;
-    component['_state'] = ComponentState.None;
+    component._state = ComponentState.None;
     if (component.pooled) {
       this._data.get(Class)!.pool?.release(component);
     }
