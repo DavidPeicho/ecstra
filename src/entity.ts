@@ -11,7 +11,6 @@ export class Entity {
 
   private _world: World;
   private _archetype: Nullable<Archetype<this>>;
-  private _destroyed: boolean;
 
   public constructor(world: World, id: string) {
     this.id = id;
@@ -19,12 +18,10 @@ export class Entity {
     this._pendingComponents = [];
     this._world = world;
     this._archetype = null;
-    this._destroyed = false;
   }
 
   public destroy(): void {
-    this._world._destroyEntity(this);
-    this._destroyed = true;
+    this._world._destroyEntityRequest(this);
   }
 
   public addComponent<T extends Component>(
@@ -61,10 +58,6 @@ export class Entity {
 
   public get archetype(): Nullable<Archetype<this>> {
     return this._archetype;
-  }
-
-  public get destroyed(): boolean {
-    return this._destroyed;
   }
 
   public get hasPendingComponents(): boolean {

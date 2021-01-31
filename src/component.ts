@@ -12,8 +12,15 @@ export class Component {
   public static readonly Name?: string;
   public readonly isComponent!: true;
 
-  private _state: ComponentState;
-  private _pooled: boolean;
+  /**
+   * @hidden
+   */
+  public _state: ComponentState;
+
+  /**
+   * @hidden
+   */
+  public _pooled: boolean;
 
   public constructor() {
     Object.defineProperty(this, 'isComponent', { value: true });

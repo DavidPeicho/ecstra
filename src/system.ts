@@ -39,7 +39,7 @@ export abstract class System<WorldType extends World = World> {
         const query = staticQueries[name];
         // @todo: should we assign queries in the object or should we just
         // request them using IDs?
-        this.queries[name] = world['_requestQuery'](query);
+        this.queries[name] = world._requestQuery(query);
       }
     }
     return this;

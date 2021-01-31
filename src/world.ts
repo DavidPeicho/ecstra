@@ -18,7 +18,7 @@ import {
   PropertiesOf,
   SystemClass
 } from './types';
-import { ComponentCommandBuffer } from './internals/commands-manager.js';
+import { Archetype } from './internals/archetype.js';
 
 export class World<E extends Entity = Entity> {
 
@@ -27,17 +27,12 @@ export class World<E extends Entity = Entity> {
   protected readonly _systems: SystemManager<this>;
   protected readonly _EntityClass: EntityClass<EntityOf<this>>;
 
-  private readonly _componentsCmdBuffer: ComponentCommandBuffer;
-  private readonly _entitiesCommands: E[];
-
   /** Public API. */
 
   public constructor(options: Partial<WorldOptions<E>> = {}) {
     const {
       maxComponentType = 256,
       useManualPooling = true,
-      useEntityCommandBuffer = false,
-      useComponentCommandBuffer = false,
       EntityClass = Entity
     } = options;
     this._queries = new QueryManager(this);
@@ -46,8 +41,6 @@ export class World<E extends Entity = Entity> {
       maxComponentType,
       useManualPooling
     });
-    this._componentsCmdBuffer = new ComponentCommandBuffer(this._components);
-    this._entitiesCommands = [];
     this._EntityClass = EntityClass as EntityClass<EntityOf<this>>;
   }
 
@@ -66,20 +59,12 @@ export class World<E extends Entity = Entity> {
     //   throw new Error(`found duplicated entity with id: '${id}'`);
     // }
     const entity = new this._EntityClass(this, id);
-    this._components.setupEntity(entity);
+    this._components.initEntity(entity);
     return entity;
   }
 
   public tick(delta: number): void {
-    this._componentsCmdBuffer.lock();
     this._systems.tick(delta);
-    this._componentsCmdBuffer.apply().unlock();
-
-    // Applies command buffers.
-    // for (const entity of this._entitiesCommands) {
-    //   this._destroyEntityImmediate(entity);
-    // }
-    // this._entitiesCommands.length = 0;
   }
 
   /**
@@ -139,16 +124,16 @@ export class World<E extends Entity = Entity> {
 
   /** Internal API. */
 
-  public _requestQuery(components: QueryComponents): Query<EntityOf<this>> {
-    return this._queries.request(components);
+  public _onArchetypeCreated(archetype: Archetype<EntityOf<this>>): void {
+    this._queries.addArchetype(archetype);
   }
 
-  public _destroyEntity(entity: E, immediate: boolean = false): void {
-    if (this._isLocked && !immediate) {
-      this._entitiesCommands.push(entity);
-    } else {
-      this._destroyEntityImmediate(entity);
-    }
+  public _onArchetypeDestroyed(archetype: Archetype<EntityOf<this>>): void {
+    this._queries.removeArchetype(archetype);
+  }
+
+  public _requestQuery(components: QueryComponents): Query<EntityOf<this>> {
+    return this._queries.request(components);
   }
 
   /**
@@ -162,15 +147,8 @@ export class World<E extends Entity = Entity> {
    *
    * @param entity -
    */
-  public _destroyEntityImmediate(entity: E): void {
-    // @todo: add deferred removal?
-    this._archetypes.removeEntity(entity);
-    // Destroys all components.
-    const components = entity['_components'];
-    for (const [ _, component ] of components) {
-      this._components.release(component);
-    }
-    components.clear();
+  public _destroyEntityRequest(entity: E): void {
+    this._components.destroyEntity(entity);
   }
 
   /**
@@ -186,7 +164,7 @@ export class World<E extends Entity = Entity> {
     Class: ComponentClass<T>,
     opts?: PropertiesOf<T>
   ): void {
-    // @todo
+    this._components.addComponentToEntity(entity, Class, opts);
   }
 
   /**
@@ -201,7 +179,7 @@ export class World<E extends Entity = Entity> {
     entity: EntityOf<this>,
     Class: ComponentClass<T>
   ): void {
-    this._componentsCmdBuffer.removeComponent(entity, Class);
+    this._components.removeComponentFromEntity(entity, Class);
   }
 }
 
@@ -210,8 +188,6 @@ export type WorldOptions<E extends Entity> = {
   components: ComponentClass[];
   maxComponentType: number;
   useManualPooling: boolean;
-  useEntityCommandBuffer: boolean;
-  useComponentCommandBuffer: boolean;
   EntityClass: EntityClass<E>;
 };
 

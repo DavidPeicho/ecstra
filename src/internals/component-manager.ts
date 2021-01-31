@@ -6,35 +6,46 @@ import { World } from '../world';
 import { Archetype } from './archetype';
 
 export class ComponentManager<WorldType extends World> {
-  public defer: boolean;
   public readonly maxComponentTypeCount: number;
 
   private readonly _world: WorldType;
   private readonly _archetypes: Map<string, Archetype<EntityOf<WorldType>>>;
-  private readonly _emptyHash: string;
-  private _locked: boolean;
+  private readonly _data: Map<ComponentClass, ComponentData>;
 
   private readonly _useManualPooling: boolean;
 
+  private readonly _emptyHash: string;
   private _lastIdentifier: number;
-  private _data: Map<ComponentClass, ComponentData>;
-
-  private _commandBuffer: EntityOf<WorldType>[];
 
   public constructor(world: WorldType, options: ComponentManagerOptions) {
     const { maxComponentType, useManualPooling } = options;
-    this.defer = false;
     this.maxComponentTypeCount = maxComponentType;
+    this._world = world;
+    this._archetypes = new Map();
+    this._data = new Map();
     this._useManualPooling = useManualPooling;
     this._lastIdentifier = 0;
-    this._data = new Map();
-
-    this._world = world;
-    this._locked = false;
-    this._archetypes = new Map();
-    this._commandBuffer = [];
     this._emptyHash = '0'.repeat(world.maxComponentTypeCount);
+
     this._archetypes.set(this._emptyHash, new Archetype([], this._emptyHash));
+  }
+
+  public initEntity(entity: EntityOf<WorldType>): void {
+    const archetype = this._archetypes.get(this._emptyHash)!;
+    archetype.entities.push(entity);
+  }
+
+  public destroyEntity(entity: Entity): void {
+    const archetype = entity.archetype;
+    if (archetype) {
+      archetype.entities.splice(archetype.entities.indexOf(entity), 1);
+      entity['_archetype'] = null;
+      // @todo: that may not be really efficient if an archetype is always
+      // composed of one entity getting attached / dettached.
+      if (archetype.entities.length === 0) {
+        this._archetypes.delete(archetype.hash);
+      }
+    }
   }
 
   public addComponentToEntity<T extends Component>(
@@ -42,8 +53,20 @@ export class ComponentManager<WorldType extends World> {
     Class: ComponentClass<T>,
     opts?: PropertiesOf<T>
   ): void {
+    const data = this.registerComponent(Class);
+    let comp = null;
+    if (data.pool) {
+      comp = data.pool.acquire();
+      comp._pooled = true;
+    } else {
+      comp = new Class();
+    }
+    if ((comp as DataComponent).isDataComponent && opts) {
+      (comp as DataComponent).copy(opts, true);
+    }
+    comp._state = ComponentState.Ready;
     // @todo: check in dev mode for duplicate.
-    entity['_components'].set(Class, this.acquire(Class, opts));
+    entity['_components'].set(Class, comp);
     this.updateArchetype(entity, Class);
   }
 
@@ -52,45 +75,13 @@ export class ComponentManager<WorldType extends World> {
     Class: ComponentClass<T>
   ): void {
     const component = entity.write(Class)!;
-    if (this._locked) {
-      if (!entity.hasPendingComponents) {
-        component['_state'] = ComponentState.Removed;
-        entity._pendingComponents.push(component);
-        this._commandBuffer.push(entity);
-      }
-    } else {
-      this._removeComponentsImmediate(entity, component);
-      this.updateArchetype(entity, Class);
-    }
-  }
-
-  public applyPendingCommands(): void {
-    for (const entity of this._commandBuffer) {
-      for (const component of entity._pendingComponents) {
-        this._removeComponentsImmediate(entity, component);
-      }
-      this.updateArchetypeFromPending(entity);
-    }
-    this._commandBuffer.length = 0;
+    this._removeComponentsImmediate(entity, component);
+    this.updateArchetype(entity, Class);
   }
 
   public getIdentifier(Class: ComponentClass): number {
+    this.registerComponent(Class);
     return this._data.get(Class)!.identifier;
-  }
-
-  public acquire(Class: ComponentClass, opts?: PropertiesOf<Component>): Component {
-    const data = this.registerComponent(Class);
-    let comp = null;
-    if (data.pool) {
-      comp = data.pool.acquire();
-      comp['_pooled'] = true;
-    } else {
-      comp = new Class();
-    }
-    if ((comp as DataComponent).isDataComponent && opts) {
-      (comp as DataComponent).copy(opts, true);
-    }
-    return comp;
   }
 
   public registerComponent(Class: ComponentClass): ComponentData {
@@ -105,56 +96,9 @@ export class ComponentManager<WorldType extends World> {
     return this._data.get(Class)!;
   }
 
-  public setupEntity(entity: EntityOf<WorldType>): void {
-    const archetype = this._archetypes.get(this._emptyHash)!;
-    archetype.entities.push(entity);
-  }
-
-  public removeEntity(entity: Entity): void {
-    const archetype = entity.archetype;
-    if (archetype) {
-      archetype.entities.splice(archetype.entities.indexOf(entity), 1);
-      entity['_archetype'] = null;
-      // @todo: that may not be really efficient if an archetype is always
-      // composed of one entity getting attached / dettached.
-      if (archetype.entities.length === 0) {
-        this._archetypes.delete(archetype.hash);
-      }
-    }
-  }
-
   public updateArchetype(entity: EntityOf<WorldType>, Class: ComponentClass): void {
-    const prevArchetype = entity.archetype;
-    if (prevArchetype) {
-      // Removes from previous archetype
-      prevArchetype.entities.splice(prevArchetype.entities.indexOf(entity), 1);
-    }
-    const newArchetypeHash = this._getArchetypeHash(entity, Class, entity.hasComponent(Class));
-    if (!this._archetypes.has(newArchetypeHash)) {
-      const classes = entity.componentClasses;
-      const archetype = new Archetype<EntityOf<WorldType>>(classes, newArchetypeHash);
-      this._archetypes.set(newArchetypeHash, archetype);
-    }
-    const archetype = this._archetypes.get(newArchetypeHash)!;
-    archetype.entities.push(entity);
-  }
-
-  public updateArchetypeFromPending(entity: EntityOf<WorldType>): void {
-    // @todo: refactor with above?
-    // Passing string around will create copies...
-    const prevArchetype = entity.archetype;
-    if (prevArchetype) {
-      // Removes from previous archetype
-      prevArchetype.entities.splice(prevArchetype.entities.indexOf(entity), 1);
-    }
-    const newArchetypeHash = this._getArchetypeFromPending(entity);
-    if (!this._archetypes.has(newArchetypeHash)) {
-      const classes = entity.componentClasses;
-      const archetype = new Archetype<EntityOf<WorldType>>(classes, newArchetypeHash);
-      this._archetypes.set(newArchetypeHash, archetype);
-    }
-    const archetype = this._archetypes.get(newArchetypeHash)!;
-    archetype.entities.push(entity);
+    const hash = this._getArchetypeHash(entity, Class, entity.hasComponent(Class));
+    this._moveEntityToArchetype(entity, hash);
   }
 
   public findEntityById(id: string): Nullable<Entity> {
@@ -185,14 +129,6 @@ export class ComponentManager<WorldType extends World> {
     return this._data.get(Class)?.pool as Option<Nullable<ObjectPool<C>>>;
   }
 
-  public lock(): void {
-    this._locked = this.defer;
-  }
-
-  public unlock(): void {
-    this._locked = false;
-  }
-
   private _removeComponentsImmediate(entity: Entity, component: Component): void {
     const Class = component.constructor as ComponentClass;
     component['_state'] = ComponentState.None;
@@ -202,14 +138,30 @@ export class ComponentManager<WorldType extends World> {
     entity._components.delete(Class);
   }
 
-  private _getArchetypeFromPending(entity: Entity): string {
-    let hash = entity.archetype ? entity.archetype.hash : this._emptyHash;
-    for (const comp of entity._pendingComponents) {
-      const Class = comp.constructor as ComponentClass;
-      const added = comp.state !== ComponentState.Removed;
-      hash = this._getArchetypeHash(entity, Class, added);
+  private _moveEntityToArchetype(entity: EntityOf<WorldType>, hash: string): void {
+    this._removeEntityFromArchetype(entity);
+    if (!this._archetypes.has(hash)) {
+      const classes = entity.componentClasses;
+      const archetype = new Archetype<EntityOf<WorldType>>(classes, hash);
+      this._archetypes.set(hash, archetype);
+      this._world._onArchetypeCreated(archetype);
     }
-    return hash;
+    const archetype = this._archetypes.get(hash)!;
+    archetype.entities.push(entity);
+  }
+
+  private _removeEntityFromArchetype(entity: EntityOf<WorldType>): void {
+    const archetype = entity.archetype;
+    if (archetype) {
+      // Removes from previous archetype
+      archetype.entities.splice(archetype.entities.indexOf(entity), 1);
+      // @todo: that may not be really efficient if an archetype is always
+      // composed of one entity getting attached / dettached.
+      if (archetype.entities.length === 0) {
+        this._archetypes.delete(archetype.hash);
+      }
+      this._world._onArchetypeDestroyed(archetype);
+    }
   }
 
   private _getArchetypeHash(entity: Entity, Class: ComponentClass, added: boolean): string {

@@ -13,12 +13,6 @@ export class QueryManager<WorldType extends World> {
   }
 
   public request(components: QueryComponents): Query<EntityOf<WorldType>> {
-    // Registers components if needed.
-    // @todo: move in world to regroup those behaviours that create side effects.
-    for (const comp of components) {
-      const Class = (comp as ComponentOperator).isOperator ? (comp as ComponentOperator).Class : comp as ComponentClass;
-      this._world['_registerComponent'](Class);
-    }
     const id = this._getQueryIdentifier(components);
     if (!this._queries.has(id)) {
       // @todo: what happens when a system is unregistered?
@@ -30,6 +24,7 @@ export class QueryManager<WorldType extends World> {
 
   public addArchetype(archetype: Archetype<EntityOf<WorldType>>): void {
     const queries = this._queries;
+    // @todo: how to optimize that when a lot of archetypes are getting created?
     for (const [ _, query ] of queries) {
       if (query.matches(archetype)) {
         query['_archetypes'].push(archetype);
@@ -38,6 +33,17 @@ export class QueryManager<WorldType extends World> {
   }
 
   public removeArchetype(archetype: Archetype<EntityOf<WorldType>>): void {
+    const queries = this._queries;
+    // @todo: how to optimize that when a lot of archetypes are getting destroyed?
+    for (const [ _, query ] of queries) {
+      if (query.matches(archetype)) {
+        const archetypes = query['_archetypes'];
+        const index = archetypes.indexOf(archetype);
+        if (index >= 0) {
+          archetypes.splice(index, 1);
+        }
+      }
+    }
   }
 
   private _getQueryIdentifier(components: QueryComponents): string {
@@ -47,7 +53,7 @@ export class QueryManager<WorldType extends World> {
       // @todo: move somewhere else
       const comp = components[i];
       const Class = (comp as ComponentOperator).isOperator ? (comp as ComponentOperator).Class : comp as ComponentClass;
-      const compId = this._world['_components'].getIdentifier(Class);
+      const compId = this._world.getComponentId(Class);
       if ((comp as ComponentOperator).isOperator) {
         idList[i] = `${(comp as ComponentOperator).kind}(${compId})`;
       } else {
