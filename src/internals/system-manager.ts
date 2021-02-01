@@ -17,7 +17,9 @@ export class SystemManager<WorldType extends World> {
     opts: SystemRegisterOptions<WorldType> = {}
   ): this {
     const {
-      group = (Class.group ?? SystemGroup) as SystemGroupClass<SystemGroup<WorldType>>
+      group = (Class.group ?? SystemGroup) as SystemGroupClass<
+        SystemGroup<WorldType>
+      >
     } = opts;
     let groupInstance = this._groups.find((g: SystemGroup) => {
       return (g.constructor as Constructor<SystemGroup<WorldType>>) === group;

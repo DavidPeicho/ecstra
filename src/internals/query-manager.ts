@@ -25,7 +25,7 @@ export class QueryManager<WorldType extends World> {
   public addArchetype(archetype: Archetype<EntityOf<WorldType>>): void {
     const queries = this._queries;
     // @todo: how to optimize that when a lot of archetypes are getting created?
-    for (const [ _, query ] of queries) {
+    for (const [_, query] of queries) {
       if (query.matches(archetype)) {
         query['_archetypes'].push(archetype);
       }
@@ -35,7 +35,7 @@ export class QueryManager<WorldType extends World> {
   public removeArchetype(archetype: Archetype<EntityOf<WorldType>>): void {
     const queries = this._queries;
     // @todo: how to optimize that when a lot of archetypes are getting destroyed?
-    for (const [ _, query ] of queries) {
+    for (const [_, query] of queries) {
       if (query.matches(archetype)) {
         const archetypes = query['_archetypes'];
         const index = archetypes.indexOf(archetype);
@@ -52,7 +52,9 @@ export class QueryManager<WorldType extends World> {
     for (let i = 0; i < count; ++i) {
       // @todo: move somewhere else
       const comp = components[i];
-      const Class = (comp as ComponentOperator).isOperator ? (comp as ComponentOperator).Class : comp as ComponentClass;
+      const Class = (comp as ComponentOperator).isOperator
+        ? (comp as ComponentOperator).Class
+        : (comp as ComponentClass);
       const compId = this._world.getComponentId(Class);
       if ((comp as ComponentOperator).isOperator) {
         idList[i] = `${(comp as ComponentOperator).kind}(${compId})`;

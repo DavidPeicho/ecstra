@@ -37,7 +37,7 @@ export class Component {
   }
 }
 
-export class DataComponent extends Component {
+export class ComponentData extends Component {
   public static readonly Properties?: Properties;
   public readonly isDataComponent!: true;
 
@@ -76,7 +76,6 @@ export class DataComponent extends Component {
   private _getClass(): DataComponentClass<this> {
     return this.constructor as DataComponentClass<this>;
   }
-
 }
 
 // @todo: up to one component per world on a dummy entity.
@@ -97,5 +96,5 @@ export class TagComponent extends Component {
 }
 
 export interface Properties {
-  [ key: string ]: Property<any>;
+  [key: string]: Property<any>;
 }

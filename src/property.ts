@@ -1,4 +1,4 @@
-import { Constructor, Nullable } from "./types";
+import { Constructor, Nullable } from './types';
 
 export class Property<T> {
   public static Name = 'BaseProperty';
@@ -23,35 +23,30 @@ export class Property<T> {
 }
 
 export class RefProp<T> extends Property<Nullable<T>> {
-
   public constructor() {
     super({ typeDefault: null });
   }
 }
 
 export class BooleanProp extends Property<boolean> {
-
-  public constructor() {
-    super({ typeDefault: false });
+  public constructor(defaultValue?: boolean) {
+    super({ typeDefault: false, default: defaultValue });
   }
 }
 
 export class NumberProp extends Property<number> {
-
   public constructor() {
     super({ typeDefault: 0 });
   }
 }
 
 export class StringProp extends Property<string> {
-
   public constructor() {
     super({ typeDefault: '' });
   }
 }
 
 export class ArrayProp<T> extends Property<T[]> {
-
   public constructor(defaultValue?: T) {
     super({ typeDefault: [] });
   }

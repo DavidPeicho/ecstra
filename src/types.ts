@@ -1,4 +1,4 @@
-import { Component, Properties } from './component';
+import { Component, ComponentData, Properties } from './component';
 import { ObjectPool } from './pool';
 import { StaticQueries, System } from './system';
 import { SystemGroup } from './system-group';
@@ -9,7 +9,9 @@ export type Option<T> = T | undefined;
 
 export type ComponentOf<P> = P extends ObjectPool<infer C> ? C : never;
 export type EntityOf<W> = W extends World<infer E> ? E : never;
-export type PropertiesOf<C extends Component> = Partial<Omit<C, keyof Component>>;
+export type PropertiesOf<C extends Component> = Partial<
+  Omit<C, keyof Component>
+>;
 
 export type Constructor<T> = new (...args: unknown[]) => T;
 
@@ -23,14 +25,12 @@ export type SystemClass<T extends System = System> = Constructor<T> & {
   readonly updateBefore?: SystemClass[];
 };
 
-export type ComponentClass<
-  T extends Component = Component
-> = Constructor<T> & {
+export type ComponentClass<T extends Component = Component> = Constructor<T> & {
   Name?: string;
 };
 
 export type DataComponentClass<
-  T extends Component = Component
+  T extends ComponentData = ComponentData
 > = Constructor<T> & {
   Name?: string;
   Properties?: Properties;

@@ -19,5 +19,4 @@ export class Archetype<E extends Entity> {
   public get components() {
     return this._components;
   }
-
 }

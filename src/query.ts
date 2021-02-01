@@ -23,7 +23,7 @@ export class Query<E extends Entity = Entity> {
       if ((comp as ComponentOperator).isOperator) {
         this._notClasses.push((comp as ComponentOperator).Class);
       } else {
-        this._classes.push((comp as ComponentClass));
+        this._classes.push(comp as ComponentClass);
       }
     }
   }

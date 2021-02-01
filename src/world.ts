@@ -20,7 +20,6 @@ import {
 import { Archetype } from './internals/archetype.js';
 
 export class World<E extends Entity = Entity> {
-
   protected readonly _components: ComponentManager<this>;
   protected readonly _queries: QueryManager<this>;
   protected readonly _systems: SystemManager<this>;
@@ -42,7 +41,9 @@ export class World<E extends Entity = Entity> {
       useManualPooling
     });
     this._EntityClass = EntityClass as EntityClass<EntityOf<this>>;
-    this._entityPool = !useManualPooling ? new DefaultPool(this._EntityClass) : null;
+    this._entityPool = !useManualPooling
+      ? new DefaultPool(this._EntityClass)
+      : null;
   }
 
   public register<T extends System<this>>(
@@ -126,7 +127,9 @@ export class World<E extends Entity = Entity> {
     return this;
   }
 
-  public getComponentPool<C extends Component>(Class: ComponentClass<C>): Option<Nullable<ObjectPool<C>>> {
+  public getComponentPool<C extends Component>(
+    Class: ComponentClass<C>
+  ): Option<Nullable<ObjectPool<C>>> {
     return this._components.getComponentPool(Class);
   }
 

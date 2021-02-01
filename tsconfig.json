@@ -1,6 +1,7 @@
 {
   "compilerOptions": {
       "target": "es6",
+      "module": "ESNext",
       "moduleResolution": "node",
       "outDir": "./lib",
       "declaration": true,

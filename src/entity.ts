@@ -7,9 +7,6 @@ import { createUUID } from './utils.js';
 export class Entity {
   public name: Nullable<string>;
 
-  public readonly _components: Map<ComponentClass, Component>;
-  public readonly _pendingComponents: Component[];
-
   /**
    * @hidden
    */
@@ -24,6 +21,9 @@ export class Entity {
    * @hidden
    */
   private readonly _id!: string;
+
+  public readonly _components: Map<ComponentClass, Component>;
+  public readonly _pendingComponents: Component[];
 
   /**
    * @hidden
@@ -52,9 +52,7 @@ export class Entity {
     return this;
   }
 
-  public removeComponent<T extends Component>(
-    Class: ComponentClass<T>
-  ): this {
+  public removeComponent<T extends Component>(Class: ComponentClass<T>): this {
     this._world._removeComponentRequest(this, Class);
     return this;
   }
@@ -74,6 +72,10 @@ export class Entity {
 
   public get id(): string {
     return this._id;
+  }
+
+  public get hasAnyComponent(): boolean {
+    return this._components.size > 0;
   }
 
   public get componentClasses(): ComponentClass[] {

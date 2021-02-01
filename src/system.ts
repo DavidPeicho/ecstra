@@ -14,7 +14,7 @@ export abstract class System<WorldType extends World = World> {
   public topologicalOrder: number;
 
   protected queries: {
-    [ key: string ]: Query<EntityOf<WorldType>>;
+    [key: string]: Query<EntityOf<WorldType>>;
   };
 
   private _group: SystemGroup<WorldType>;
@@ -59,6 +59,6 @@ export interface SystemOptions<WorldType extends World = World> {
 
 export interface StaticQueries {
   [key: string]: QueryComponents;
-};
+}
 
 export type Orderable = { order: number };

@@ -1,4 +1,4 @@
-import { Constructor } from "./types";
+import { Constructor } from './types';
 
 export class DefaultPool<T> {
   protected readonly _class;
@@ -6,7 +6,10 @@ export class DefaultPool<T> {
   protected readonly _growPercentage: number;
   protected _freeSlot: number;
 
-  public constructor(Class: Constructor<T>, options: Partial<DefaultPoolOptions<T>> = {}) {
+  public constructor(
+    Class: Constructor<T>,
+    options: Partial<DefaultPoolOptions<T>> = {}
+  ) {
     this._class = Class;
     this._list = [];
     this._growPercentage = options.growthPercentage ?? 0.2;
