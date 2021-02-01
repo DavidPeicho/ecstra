@@ -20,6 +20,6 @@ test('Component > ComponentData > Properties created', (t) => {
 
   entity.addComponent(TestComponent);
   const comp = entity.read(TestComponent)!;
-  t.true(!!comp.myBoolean);
-  t.true(!!comp.myArray);
+  t.true(comp.myBoolean !== undefined);
+  t.true(comp.myArray !== undefined);
 });
