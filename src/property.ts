@@ -5,8 +5,15 @@ export class Property<T> {
 
   protected _default: T;
 
-  public constructor(options: PropertyOptions<T>) {
-    this._default = options.default ?? options.typeDefault;
+  public constructor(typeDefault: T, opts?: T | PropertyOptions<T>) {
+    this._default = typeDefault;
+    if (opts) {
+      if ((typeDefault as Object).constructor === (opts as Object).constructor) {
+        this._default = opts as T;
+      } else {
+        this._default = (opts as PropertyOptions<T>).default ?? typeDefault;
+      }
+    }
   }
 
   public copy(_: T, src: T): T {
@@ -24,31 +31,31 @@ export class Property<T> {
 
 export class RefProp<T> extends Property<Nullable<T>> {
   public constructor() {
-    super({ typeDefault: null });
+    super(null);
   }
 }
 
 export class BooleanProp extends Property<boolean> {
-  public constructor(defaultValue?: boolean) {
-    super({ typeDefault: false, default: defaultValue });
+  public constructor(opts?: boolean | PropertyOptions<boolean>) {
+    super(false, opts);
   }
 }
 
 export class NumberProp extends Property<number> {
-  public constructor() {
-    super({ typeDefault: 0 });
+  public constructor(opts?: number | PropertyOptions<number>) {
+    super(0, opts);
   }
 }
 
 export class StringProp extends Property<string> {
-  public constructor() {
-    super({ typeDefault: '' });
+  public constructor(opts?: string | PropertyOptions<string>) {
+    super('', opts);
   }
 }
 
 export class ArrayProp<T> extends Property<T[]> {
-  public constructor(defaultValue?: T) {
-    super({ typeDefault: [] });
+  public constructor(opts?: T[] | PropertyOptions<T[]>) {
+    super([], opts);
   }
 
   public copy(dst: T[], src: T[]): T[] {
@@ -66,7 +73,7 @@ export class CopyProp<T extends CopyClonableType> extends Property<T> {
   public static Name = 'CopyClonable';
 
   public constructor(options: CopyClonableOptions<T>) {
-    super({ typeDefault: new options.type(), default: options.default });
+    super(new options.type(), options);
     // @todo: check that type is really copy/clonable in dev mode.
   }
 
@@ -84,7 +91,6 @@ export class CopyProp<T extends CopyClonableType> extends Property<T> {
 }
 
 export interface PropertyOptions<T> {
-  typeDefault: T;
   default?: T;
 }
 

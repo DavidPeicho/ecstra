@@ -16,7 +16,8 @@
       "strictFunctionTypes": true,
       "skipLibCheck": true,
       "forceConsistentCasingInFileNames": true,
-      "stripInternal": true
+      "stripInternal": true,
+      "experimentalDecorators": true
   },
 
   "include": [ "./src" ],
