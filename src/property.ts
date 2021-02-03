@@ -1,19 +1,13 @@
 import { Constructor, Nullable } from './types';
 
 export class Property<T> {
-  public static Name = 'BaseProperty';
+  public default: T;
 
-  protected _default: T;
+  private readonly _hasUserDefault: boolean;
 
-  public constructor(typeDefault: T, opts?: T | PropertyOptions<T>) {
-    this._default = typeDefault;
-    if (opts) {
-      if ((typeDefault as Object).constructor === (opts as Object).constructor) {
-        this._default = opts as T;
-      } else {
-        this._default = (opts as PropertyOptions<T>).default ?? typeDefault;
-      }
-    }
+  public constructor(typeDefault: T, defaultVal?: T) {
+    this.default = defaultVal ?? typeDefault;
+    this._hasUserDefault = this.default === defaultVal;
   }
 
   public copy(_: T, src: T): T {
@@ -21,40 +15,20 @@ export class Property<T> {
   }
 
   public copyDefault(dest: T): T {
-    return this.copy(dest, this._default);
+    return this.copy(dest, this.default);
   }
 
   public cloneDefault(): T {
-    return this._default;
+    return this.default;
+  }
+
+  public get hasUserDefault() {
+    return this._hasUserDefault;
   }
 }
 
-export class RefProp<T> extends Property<Nullable<T>> {
-  public constructor() {
-    super(null);
-  }
-}
-
-export class BooleanProp extends Property<boolean> {
-  public constructor(opts?: boolean | PropertyOptions<boolean>) {
-    super(false, opts);
-  }
-}
-
-export class NumberProp extends Property<number> {
-  public constructor(opts?: number | PropertyOptions<number>) {
-    super(0, opts);
-  }
-}
-
-export class StringProp extends Property<string> {
-  public constructor(opts?: string | PropertyOptions<string>) {
-    super('', opts);
-  }
-}
-
-export class ArrayProp<T> extends Property<T[]> {
-  public constructor(opts?: T[] | PropertyOptions<T[]>) {
+export class ArrayProperty<T> extends Property<T[]> {
+  public constructor(opts?: T[]) {
     super([], opts);
   }
 
@@ -69,11 +43,9 @@ export class ArrayProp<T> extends Property<T[]> {
   }
 }
 
-export class CopyProp<T extends CopyClonableType> extends Property<T> {
-  public static Name = 'CopyClonable';
-
+export class CopyableProperty<T extends CopyClonableType> extends Property<T> {
   public constructor(options: CopyClonableOptions<T>) {
-    super(new options.type(), options);
+    super(new options.type(), options.default);
     // @todo: check that type is really copy/clonable in dev mode.
   }
 
@@ -82,12 +54,38 @@ export class CopyProp<T extends CopyClonableType> extends Property<T> {
   }
 
   public copyDefault(dest: T): T {
-    return dest.copy(this._default);
+    return dest.copy(this.default);
   }
 
   public cloneDefault(): T {
-    return this._default.clone();
+    return this.default.clone();
   }
+}
+
+export function RefProp<T>(defaultVal?: Nullable<T>) {
+  return new Property(null, defaultVal);
+}
+
+export function BooleanProp(defaultVal?: boolean) {
+  return new Property(false, defaultVal);
+}
+
+export function NumberProp(defaultVal?: number) {
+  return new Property(0, defaultVal);
+}
+
+export function StringProp(defaultVal?: string) {
+  return new Property('', defaultVal);
+}
+
+export function ArrayProp<T>(defaultVal?: T[]) {
+  return new ArrayProperty(defaultVal);
+}
+
+export function CopyableProp<T extends CopyClonableType>(
+  opts: CopyClonableOptions<T>
+) {
+  return new CopyableProperty(opts);
 }
 
 export interface PropertyOptions<T> {
@@ -99,7 +97,7 @@ export interface CopyClonableOptions<T> {
   default?: T;
 }
 
-interface CopyClonableType {
+export interface CopyClonableType {
   copy(source: this): this;
   clone(): this;
 }

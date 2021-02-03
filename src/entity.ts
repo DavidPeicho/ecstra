@@ -44,7 +44,7 @@ export class Entity {
     this._world._destroyEntityRequest(this);
   }
 
-  public addComponent<T extends Component>(
+  public add<T extends Component>(
     Class: ComponentClass<T>,
     opts?: PropertiesOf<T>
   ): this {
@@ -52,7 +52,7 @@ export class Entity {
     return this;
   }
 
-  public removeComponent<T extends Component>(Class: ComponentClass<T>): this {
+  public remove<T extends Component>(Class: ComponentClass<T>): this {
     this._world._removeComponentRequest(this, Class);
     return this;
   }

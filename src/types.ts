@@ -28,7 +28,9 @@ export type SystemClass<T extends System = System> = Constructor<T> & {
 export type ComponentClass<T extends Component = Component> = Constructor<T> & {
   Name?: string;
 };
-export type PropertyClass<T extends Property<any> = Property<any>> = Constructor<T>;
+export type PropertyClass<
+  T extends Property<any> = Property<any>
+> = Constructor<T>;
 
 export type DataComponentClass<
   T extends ComponentData = ComponentData

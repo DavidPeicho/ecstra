@@ -64,9 +64,9 @@ export class ComponentData extends Component {
     return this;
   }
 
-  public clone(source: this): this {
+  public clone(): this {
     const Class = this._getClass();
-    return (new Class() as this).copy(source);
+    return (new Class() as this).copy(this);
   }
 
   public init(source: PropertiesOf<this>): this {

@@ -65,6 +65,10 @@ export class Query<E extends Entity = Entity> {
     }
     return true;
   }
+
+  public get archetypes(): Archetype<E>[] {
+    return this.archetypes;
+  }
 }
 
 export type ComponentOperator = {
