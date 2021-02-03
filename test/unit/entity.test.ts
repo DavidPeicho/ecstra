@@ -44,7 +44,7 @@ test('Entity - remove component', (t) => {
   entity.add(FooComponent);
   t.true(entity.hasAnyComponent);
 
-  entity.add(FooComponent);
+  entity.remove(FooComponent);
   t.false(entity.hasAnyComponent);
   t.false(entity.hasComponent(FooComponent));
 
@@ -52,7 +52,20 @@ test('Entity - remove component', (t) => {
   t.true(entity.hasComponent(FooComponent));
   t.true(entity.hasComponent(BarComponent));
 
-  entity.add(BarComponent);
+  entity.remove(BarComponent);
   t.true(entity.hasComponent(FooComponent));
   t.false(entity.hasComponent(BarComponent));
+});
+
+test('Entity - destroy', (t) => {
+  const world = new World();
+  const entity = world.create('a').add(FooComponent).add(BarComponent);
+  world.create('b').add(FooComponent);
+  world.create('b').add(BarComponent);
+
+  // Assumes entity are destroyed synchronously
+  const archetypeId = entity.archetype!.hash;
+  entity.destroy();
+  t.is(entity.archetype, null);
+  t.false(world['_components'].archetypes.has(archetypeId));
 });

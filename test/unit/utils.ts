@@ -1,5 +1,6 @@
 import { ComponentData } from '../../src/component.js';
 import { BooleanProp, NumberProp, StringProp } from '../../src/property.js';
+import { System } from '../../src/system.js';
 
 export class FooComponent extends ComponentData {
   public static Name = 'Foo';
@@ -23,4 +24,11 @@ export class BarComponent extends ComponentData {
   };
 
   public isBar!: boolean;
+}
+
+export class FooBarSystem extends System {
+  public static queries = {
+    foobar: [FooComponent, BarComponent]
+  };
+  execute() {}
 }

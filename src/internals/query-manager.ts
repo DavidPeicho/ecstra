@@ -25,13 +25,19 @@ export class QueryManager<WorldType extends World> {
     return this._queries.get(id)!;
   }
 
-  public addArchetypeToQuery(query: Query<EntityOf<WorldType>>, archetype: Archetype<EntityOf<WorldType>>): void {
+  public addArchetypeToQuery(
+    query: Query<EntityOf<WorldType>>,
+    archetype: Archetype<EntityOf<WorldType>>
+  ): void {
     if (query.matches(archetype)) {
       query['_archetypes'].push(archetype);
     }
   }
 
-  public removeArchetypeFromQuery(query: Query<EntityOf<WorldType>>, archetype: Archetype<EntityOf<WorldType>>): void {
+  public removeArchetypeFromQuery(
+    query: Query<EntityOf<WorldType>>,
+    archetype: Archetype<EntityOf<WorldType>>
+  ): void {
     if (query.matches(archetype)) {
       const archetypes = query['_archetypes'];
       const index = archetypes.indexOf(archetype);

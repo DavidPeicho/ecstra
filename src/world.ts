@@ -157,7 +157,9 @@ export class World<E extends Entity = Entity> {
 
   public _onQueryCreated(query: Query<EntityOf<this>>): void {
     const archetypes = this._components.archetypes;
-    archetypes.forEach((archetype) => this._queries.addArchetypeToQuery(query, archetype));
+    archetypes.forEach((archetype) =>
+      this._queries.addArchetypeToQuery(query, archetype)
+    );
   }
 
   public _requestQuery(components: QueryComponents): Query<EntityOf<this>> {
