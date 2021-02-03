@@ -10,7 +10,15 @@ import {
   RefProp,
   StringProp
 } from './property.js';
-import { DataComponentClass, Nullable, PropertyClass } from './types.js';
+import {
+  DataComponentClass,
+  Nullable,
+  PropertyClass,
+  SystemClass,
+  SystemGroupClass
+} from './types.js';
+
+/** Properties. */
 
 function setupProperty(property: Property<unknown>) {
   return function (target: ComponentData, key: string) {
@@ -64,4 +72,24 @@ export function copyable<T extends CopyClonableType>(
 export interface PropertyDecoratorOptions<T> {
   type: PropertyClass;
   default?: T;
+}
+
+/** Systems. */
+
+export function before(Classes: SystemClass[]) {
+  return function (constructor: SystemClass) {
+    constructor.UpdateBefore = Classes;
+  };
+}
+
+export function after(Classes: SystemClass[]) {
+  return function (constructor: SystemClass) {
+    constructor.UpdateAfter = Classes;
+  };
+}
+
+export function group(Class: SystemGroupClass) {
+  return function (constructor: SystemClass) {
+    constructor.Group = Class;
+  };
 }

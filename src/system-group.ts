@@ -3,7 +3,7 @@ import { sortByOrder, System } from './system.js';
 import { SystemClass } from './types';
 
 export class SystemGroup<WorldType extends World = World> {
-  public static Name: string = 'Default';
+  public static Name?: string;
 
   public enabled: boolean;
   public order: number;
@@ -55,13 +55,13 @@ export class SystemGroup<WorldType extends World = World> {
     // @todo: use indices instead of changing lenght.
     systems.length = 0;
     for (const [Class, node] of nodes) {
-      if (Class.updateAfter) {
-        for (const AfterClass of Class.updateAfter) {
+      if (Class.UpdateAfter) {
+        for (const AfterClass of Class.UpdateAfter) {
           nodes.get(AfterClass)?.next.push(Class);
         }
       }
-      if (Class.updateBefore) {
-        for (const BeforeClass of Class.updateBefore) {
+      if (Class.UpdateBefore) {
+        for (const BeforeClass of Class.UpdateBefore) {
           if (nodes.has(BeforeClass)!) {
             node.next.push(BeforeClass);
           }

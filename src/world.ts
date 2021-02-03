@@ -15,7 +15,8 @@ import {
   Nullable,
   Option,
   PropertiesOf,
-  SystemClass
+  SystemClass,
+  SystemGroupClass
 } from './types';
 import { Archetype } from './internals/archetype.js';
 
@@ -121,6 +122,10 @@ export class World<E extends Entity = Entity> {
 
   public system<T extends System>(Class: SystemClass<T>): Option<T> {
     return this._systems.system(Class);
+  }
+
+  public group<T extends SystemGroup>(Class: SystemGroupClass<T>): Option<T> {
+    return this._systems.group(Class);
   }
 
   public setComponentPool<P extends ObjectPool<any>>(

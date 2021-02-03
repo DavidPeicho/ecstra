@@ -10,6 +10,10 @@ export { System } from './system.js';
 export { SystemGroup } from './system-group.js';
 export { World } from './world.js';
 
+/** Misc */
+
+export { DefaultPool, ObjectPool } from './pool.js';
+
 /** Properties. */
 
 export * from './property.js';
@@ -18,3 +22,6 @@ export * from './property.js';
 
 // @todo: maybe it shouldn't be exported by default?
 export * from './decorators.js';
+
+/** Types. */
+export * from './types';

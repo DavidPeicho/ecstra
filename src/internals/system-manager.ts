@@ -20,7 +20,7 @@ export class SystemManager<WorldType extends World> {
   ): this {
     // @todo: check for duplicated.
     const {
-      group = (Class.group ?? SystemGroup) as SystemGroupClass<
+      group = (Class.Group ?? SystemGroup) as SystemGroupClass<
         SystemGroup<WorldType>
       >
     } = opts;

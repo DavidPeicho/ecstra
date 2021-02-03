@@ -4,10 +4,10 @@ import { World } from './world.js';
 import { Constructor, EntityOf, SystemClass } from './types';
 
 export abstract class System<WorldType extends World = World> {
-  public static readonly queries?: StaticQueries;
-  public static readonly group?: Constructor<SystemGroup>;
-  public static readonly updateAfter?: SystemClass[];
-  public static readonly updateBefore?: SystemClass[];
+  public static Queries?: StaticQueries;
+  public static Group?: Constructor<SystemGroup>;
+  public static UpdateAfter?: SystemClass[];
+  public static UpdateBefore?: SystemClass[];
 
   public enabled: boolean;
   public order: number;
@@ -34,7 +34,7 @@ export abstract class System<WorldType extends World = World> {
 
   public buildStaticQueries(): this {
     const world = this._group.world;
-    const staticQueries = (this.constructor as SystemClass).queries;
+    const staticQueries = (this.constructor as SystemClass).Queries;
     if (staticQueries) {
       for (const name in staticQueries) {
         const query = staticQueries[name];
@@ -47,6 +47,10 @@ export abstract class System<WorldType extends World = World> {
   }
 
   public abstract execute(delta: number): void;
+
+  public get group(): SystemGroup {
+    return this._group;
+  }
 }
 
 export function sortByOrder(a: Orderable, b: Orderable): number {
