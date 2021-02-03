@@ -33,7 +33,7 @@ test('Query > archetype match (not) operator', (t) => {
 test('Query Manager > intersection', (t) => {
   class MyTagComponent extends TagComponent {}
   class MySystem extends System {
-    public static queries = {
+    public static Queries = {
       foobar: [FooComponent, BarComponent],
       all: [FooComponent, BarComponent, MyTagComponent]
     };
@@ -67,7 +67,7 @@ test('Query Manager > intersection', (t) => {
 
 test('Query Manager > register system when archetypes already exist', (t) => {
   class MySystem extends System {
-    public static queries = {
+    public static Queries = {
       q: [FooComponent]
     };
     execute() {}
@@ -87,7 +87,7 @@ test('Query Manager > register system when archetypes already exist', (t) => {
 
 test('Query Manager > `not` selector', (t) => {
   class MySystem extends System {
-    public static queries = {
+    public static Queries = {
       foobar: [FooComponent, Not(BarComponent)]
     };
     execute() {}

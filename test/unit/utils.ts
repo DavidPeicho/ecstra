@@ -27,7 +27,7 @@ export class BarComponent extends ComponentData {
 }
 
 export class FooBarSystem extends System {
-  public static queries = {
+  public static Queries = {
     foobar: [FooComponent, BarComponent]
   };
   execute() {}
