@@ -15,8 +15,8 @@ import {
 export class ComponentManager<WorldType extends World> {
   public readonly maxComponentTypeCount: number;
 
+  public readonly archetypes: Map<string, Archetype<EntityOf<WorldType>>>;
   private readonly _world: WorldType;
-  private readonly _archetypes: Map<string, Archetype<EntityOf<WorldType>>>;
   private readonly _data: Map<ComponentClass, ComponentCache>;
 
   private readonly _useManualPooling: boolean;
@@ -28,17 +28,17 @@ export class ComponentManager<WorldType extends World> {
     const { maxComponentType, useManualPooling } = options;
     this.maxComponentTypeCount = maxComponentType;
     this._world = world;
-    this._archetypes = new Map();
+    this.archetypes = new Map();
     this._data = new Map();
     this._useManualPooling = useManualPooling;
     this._lastIdentifier = 0;
     this._emptyHash = '0'.repeat(maxComponentType);
 
-    this._archetypes.set(this._emptyHash, new Archetype([], this._emptyHash));
+    this.archetypes.set(this._emptyHash, new Archetype([], this._emptyHash));
   }
 
   public initEntity(entity: EntityOf<WorldType>): void {
-    const archetype = this._archetypes.get(this._emptyHash)!;
+    const archetype = this.archetypes.get(this._emptyHash)!;
     archetype.entities.push(entity);
   }
 
@@ -50,7 +50,7 @@ export class ComponentManager<WorldType extends World> {
       // @todo: that may not be really efficient if an archetype is always
       // composed of one entity getting attached / dettached.
       if (archetype.entities.length === 0) {
-        this._archetypes.delete(archetype.hash);
+        this.archetypes.delete(archetype.hash);
       }
     }
   }
@@ -116,7 +116,7 @@ export class ComponentManager<WorldType extends World> {
   }
 
   public findEntityByName(name: string): Nullable<Entity> {
-    for (const [_, archetype] of this._archetypes) {
+    for (const [_, archetype] of this.archetypes) {
       const entities = archetype.entities;
       for (const entity of entities) {
         if (entity.name === name) {
@@ -162,13 +162,13 @@ export class ComponentManager<WorldType extends World> {
     hash: string
   ): void {
     this._removeEntityFromArchetype(entity);
-    if (!this._archetypes.has(hash)) {
+    if (!this.archetypes.has(hash)) {
       const classes = entity.componentClasses;
       const archetype = new Archetype<EntityOf<WorldType>>(classes, hash);
-      this._archetypes.set(hash, archetype);
+      this.archetypes.set(hash, archetype);
       this._world._onArchetypeCreated(archetype);
     }
-    const archetype = this._archetypes.get(hash)!;
+    const archetype = this.archetypes.get(hash)!;
     archetype.entities.push(entity);
     entity['_archetype'] = archetype;
   }
@@ -182,9 +182,9 @@ export class ComponentManager<WorldType extends World> {
       // @todo: that may not be really efficient if an archetype is always
       // composed of one entity getting attached / dettached.
       if (archetype.entities.length === 0) {
-        this._archetypes.delete(archetype.hash);
+        this.archetypes.delete(archetype.hash);
+        this._world._onArchetypeDestroyed(archetype);
       }
-      this._world._onArchetypeDestroyed(archetype);
     }
   }
 

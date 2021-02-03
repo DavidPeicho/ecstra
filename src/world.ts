@@ -155,6 +155,11 @@ export class World<E extends Entity = Entity> {
     this._queries.removeArchetype(archetype);
   }
 
+  public _onQueryCreated(query: Query<EntityOf<this>>): void {
+    const archetypes = this._components.archetypes;
+    archetypes.forEach((archetype) => this._queries.addArchetypeToQuery(query, archetype));
+  }
+
   public _requestQuery(components: QueryComponents): Query<EntityOf<this>> {
     return this._queries.request(components);
   }

@@ -20,17 +20,32 @@ export class QueryManager<WorldType extends World> {
       // archetypes already exist.
       const query = new Query<EntityOf<WorldType>>(components);
       this._queries.set(id, query);
+      this._world._onQueryCreated(query);
     }
     return this._queries.get(id)!;
+  }
+
+  public addArchetypeToQuery(query: Query<EntityOf<WorldType>>, archetype: Archetype<EntityOf<WorldType>>): void {
+    if (query.matches(archetype)) {
+      query['_archetypes'].push(archetype);
+    }
+  }
+
+  public removeArchetypeFromQuery(query: Query<EntityOf<WorldType>>, archetype: Archetype<EntityOf<WorldType>>): void {
+    if (query.matches(archetype)) {
+      const archetypes = query['_archetypes'];
+      const index = archetypes.indexOf(archetype);
+      if (index >= 0) {
+        archetypes.splice(index, 1);
+      }
+    }
   }
 
   public addArchetype(archetype: Archetype<EntityOf<WorldType>>): void {
     const queries = this._queries;
     // @todo: how to optimize that when a lot of archetypes are getting created?
     for (const [_, query] of queries) {
-      if (query.matches(archetype)) {
-        query['_archetypes'].push(archetype);
-      }
+      this.addArchetypeToQuery(query, archetype);
     }
   }
 
@@ -38,13 +53,7 @@ export class QueryManager<WorldType extends World> {
     const queries = this._queries;
     // @todo: how to optimize that when a lot of archetypes are getting destroyed?
     for (const [_, query] of queries) {
-      if (query.matches(archetype)) {
-        const archetypes = query['_archetypes'];
-        const index = archetypes.indexOf(archetype);
-        if (index >= 0) {
-          archetypes.splice(index, 1);
-        }
-      }
+      this.removeArchetypeFromQuery(query, archetype);
     }
   }
 

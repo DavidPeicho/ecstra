@@ -83,7 +83,7 @@ export class Query<E extends Entity = Entity> {
 export type ComponentOperator = {
   Class: ComponentClass;
   kind: QueryComponentOperatorKind;
-  isOperator: true;
+  isOperator: boolean;
 };
 export type QueryComponents = (ComponentClass | ComponentOperator)[];
 export type QueryExecutorVoid = (entity: Entity) => void;
