@@ -19,9 +19,10 @@
   "scripts": {
     "build": "npm run copy:to:dist && tsc",
     "start": "npm run copy:to:dist && tsc --watch",
+    "examples": "http-server ./ -c-1 -p 8080 --cors ./example",
     "lint": "eslint src",
     "test": "ava",
-    "pretty": "prettier ./src/ --write",
+    "pretty": "prettier ./src/ ./test --write",
     "copy:to:dist": "cp package.json lib && cp README.md lib"
   },
   "devDependencies": {
@@ -32,6 +33,7 @@
     "eslint": "^7.17.0",
     "eslint-config-prettier": "^7.1.0",
     "eslint-plugin-prettier": "^3.3.1",
+    "http-server": "^0.12.3",
     "husky": "^4.3.8",
     "prettier": "^2.2.1",
     "ts-node": "^9.1.1",

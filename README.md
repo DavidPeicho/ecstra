@@ -1,7 +1,7 @@
 # flecs
 
 > 🚧 Flecs is a work-in-progress and might be unstable, use it at your
-own risks 🚧
+> own risks 🚧
 
 Fast & Flexible EntityComponentSystem (ECS) for JavaScript and Typescript, available in browser and Node.js.
 
@@ -13,11 +13,16 @@ Get started with:
 
 ## Philosophy
 
-The goal for me is to keep the library:
+Flecs is heavily based on [Ecsy](https://github.com/ecsyjs/ecsy), but mixes concepts from other great ECS. It also share some concepts with
+[Hecs](https://github.com/gohyperr/hecs/).
+
+My goals for the library is to keep it:
 
 * 💻 Cross Platform & Framework Agnostic 💻
 * 🏋️ Lightweight 🏋️
 *  ⚡ Fast ⚡
+
+The library will prioritize stability improvements over feature development.
 
 ## Features
 
