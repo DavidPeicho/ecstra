@@ -56,7 +56,7 @@ export class ComponentData extends Component {
       const prop = properties[name];
       if (source.hasOwnProperty(name)) {
         const value = source[name as keyof PropertiesOf<this>];
-        this[name as keyof this] = prop.copy(value, this[name as keyof this]);
+        this[name as keyof this] = prop.copy(this[name as keyof this], value);
       } else if (useDefault) {
         this[name as keyof this] = prop.copyDefault(this[name as keyof this]);
       }

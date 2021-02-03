@@ -66,8 +66,17 @@ export class Query<E extends Entity = Entity> {
     return true;
   }
 
+  public hasEntity(entity: E): boolean {
+    for (const archetype of this._archetypes) {
+      if (archetype.hasEntity(entity)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   public get archetypes(): Archetype<E>[] {
-    return this.archetypes;
+    return this._archetypes;
   }
 }
 

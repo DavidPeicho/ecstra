@@ -6,8 +6,12 @@ export class Property<T> {
   private readonly _hasUserDefault: boolean;
 
   public constructor(typeDefault: T, defaultVal?: T) {
-    this.default = defaultVal ?? typeDefault;
-    this._hasUserDefault = this.default === defaultVal;
+    this.default = typeDefault;
+    this._hasUserDefault = false;
+    if (defaultVal !== undefined) {
+      this.default = defaultVal;
+      this._hasUserDefault = true;
+    }
   }
 
   public copy(_: T, src: T): T {

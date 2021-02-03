@@ -18,12 +18,6 @@ function setupProperty(property: Property<unknown>) {
     if (!constructor.Properties) {
       constructor.Properties = {};
     }
-    const curr = constructor.Properties[key];
-    if (!property.hasUserDefault && curr === undefined) {
-      // No default value provided in the decorator, take the value
-      // directly setup in the object.
-      property.default = curr;
-    }
     constructor.Properties[key] = property;
   };
 }

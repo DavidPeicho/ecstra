@@ -25,11 +25,11 @@ export class SystemGroup<WorldType extends World = World> {
     this._systems.push(system);
   }
 
-  public tick(delta: number): void {
+  public execute(delta: number): void {
     const systems = this._systems;
     for (const system of systems) {
       if (system.enabled) {
-        system.tick(delta);
+        system.execute(delta);
       }
     }
   }

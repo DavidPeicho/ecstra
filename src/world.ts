@@ -71,8 +71,8 @@ export class World<E extends Entity = Entity> {
     return entity;
   }
 
-  public tick(delta: number): void {
-    this._systems.tick(delta);
+  public execute(delta: number): void {
+    this._systems.execute(delta);
   }
 
   /**
@@ -117,6 +117,10 @@ export class World<E extends Entity = Entity> {
 
   public getEntityPool(): Option<Nullable<EntityPool<this>>> {
     return this._entityPool;
+  }
+
+  public system<T extends System>(Class: SystemClass<T>): Option<T> {
+    return this._systems.system(Class);
   }
 
   public setComponentPool<P extends ObjectPool<any>>(

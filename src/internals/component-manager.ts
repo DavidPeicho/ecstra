@@ -170,11 +170,13 @@ export class ComponentManager<WorldType extends World> {
     }
     const archetype = this._archetypes.get(hash)!;
     archetype.entities.push(entity);
+    entity['_archetype'] = archetype;
   }
 
   private _removeEntityFromArchetype(entity: EntityOf<WorldType>): void {
     const archetype = entity.archetype;
     if (archetype) {
+      entity['_archetype'] = null;
       // Removes from previous archetype
       archetype.entities.splice(archetype.entities.indexOf(entity), 1);
       // @todo: that may not be really efficient if an archetype is always

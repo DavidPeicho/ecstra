@@ -11,7 +11,6 @@ export abstract class System<WorldType extends World = World> {
 
   public enabled: boolean;
   public order: number;
-  public topologicalOrder: number;
 
   protected queries: {
     [key: string]: Query<EntityOf<WorldType>>;
@@ -19,12 +18,11 @@ export abstract class System<WorldType extends World = World> {
 
   private _group: SystemGroup<WorldType>;
 
-  public constructor(options: SystemOptions<WorldType>) {
+  public constructor(group: SystemGroup<WorldType>, options: Partial<SystemOptions<WorldType>>) {
     this.enabled = true;
-    this.order = 0;
-    this.topologicalOrder = 0;
+    this.order = options.order ?? 0;
     this.queries = {};
-    this._group = options.group;
+    this._group = group;
 
     // @todo: When system is unregistered, how do we clean those queries in
     // the QueryManager?
@@ -45,7 +43,7 @@ export abstract class System<WorldType extends World = World> {
     return this;
   }
 
-  public abstract tick(delta: number): void;
+  public abstract execute(delta: number): void;
 }
 
 export function sortByOrder(a: Orderable, b: Orderable): number {
@@ -53,8 +51,7 @@ export function sortByOrder(a: Orderable, b: Orderable): number {
 }
 
 export interface SystemOptions<WorldType extends World = World> {
-  group: SystemGroup<WorldType>;
-  params: any;
+  order: number;
 }
 
 export interface StaticQueries {

@@ -16,6 +16,8 @@ export class QueryManager<WorldType extends World> {
     const id = this._getQueryIdentifier(components);
     if (!this._queries.has(id)) {
       // @todo: what happens when a system is unregistered?
+      // @todo: will not work if a system is created after some
+      // archetypes already exist.
       const query = new Query<EntityOf<WorldType>>(components);
       this._queries.set(id, query);
     }

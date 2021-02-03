@@ -6,16 +6,19 @@ import { Constructor, Option, SystemClass, SystemGroupClass } from '../types';
 export class SystemManager<WorldType extends World> {
   private _world: WorldType;
   private _groups: SystemGroup<WorldType>[];
+  private _systems: Map<SystemClass, System>;
 
   public constructor(world: WorldType) {
     this._world = world;
     this._groups = [new SystemGroup(this._world)];
+    this._systems = new Map();
   }
 
   public register<T extends System<WorldType>>(
     Class: SystemClass<T>,
     opts: SystemRegisterOptions<WorldType> = {}
   ): this {
+    // @todo: check for duplicated.
     const {
       group = (Class.group ?? SystemGroup) as SystemGroupClass<
         SystemGroup<WorldType>
@@ -27,16 +30,18 @@ export class SystemManager<WorldType extends World> {
     if (!groupInstance) {
       groupInstance = new group(this._world);
     }
-    groupInstance.add(new Class());
+    const system = new Class(groupInstance, opts);
+    this._systems.set(Class, system);
+    groupInstance.add(system);
     groupInstance.sort();
     return this;
   }
 
-  public tick(delta: number): void {
+  public execute(delta: number): void {
     const groups = this._groups;
     for (const group of groups) {
       if (group.enabled) {
-        group.tick(delta);
+        group.execute(delta);
       }
     }
   }
@@ -50,5 +55,9 @@ export class SystemManager<WorldType extends World> {
     return this._groups.find((group: SystemGroup) => {
       Class === group.constructor;
     }) as Option<T>;
+  }
+
+  public system<T extends System>(Class: SystemClass<T>): Option<T> {
+    return this._systems.get(Class) as Option<T>;
   }
 }

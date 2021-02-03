@@ -12,6 +12,10 @@ export class Archetype<E extends Entity> {
     this._components = new Set(components);
   }
 
+  public hasEntity(entity: E): boolean {
+    return this.entities.indexOf(entity) >= 0;
+  }
+
   public get hash() {
     return this._hash;
   }
