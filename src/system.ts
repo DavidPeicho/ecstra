@@ -18,7 +18,10 @@ export abstract class System<WorldType extends World = World> {
 
   private _group: SystemGroup<WorldType>;
 
-  public constructor(group: SystemGroup<WorldType>, options: Partial<SystemOptions<WorldType>>) {
+  public constructor(
+    group: SystemGroup<WorldType>,
+    options: Partial<SystemOptions<WorldType>>
+  ) {
     this.enabled = true;
     this.order = options.order ?? 0;
     this.queries = {};

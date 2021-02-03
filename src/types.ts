@@ -19,7 +19,10 @@ export type Constructor<T> = new (...args: any[]) => T;
 export type SystemGroupClass<T extends SystemGroup> = Constructor<T> & {
   readonly name?: string;
 };
-export type SystemClass<T extends System = System> = (new (group: SystemGroup, opts: any) => T) & {
+export type SystemClass<T extends System = System> = (new (
+  group: SystemGroup,
+  opts: any
+) => T) & {
   readonly queries?: StaticQueries;
   readonly group?: Constructor<SystemGroup>;
   readonly updateAfter?: SystemClass[];

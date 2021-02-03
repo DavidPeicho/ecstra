@@ -26,12 +26,12 @@ test('Entity - add component', (t) => {
   entity.add(FooComponent);
   t.true(entity.hasAnyComponent);
   t.true(entity.hasComponent(FooComponent));
-  t.deepEqual(entity.componentClasses, [ FooComponent ]);
+  t.deepEqual(entity.componentClasses, [FooComponent]);
   t.true(entity.read(FooComponent)!.constructor === FooComponent);
 
   entity.add(BarComponent);
   t.true(entity.hasComponent(BarComponent));
-  t.deepEqual(entity.componentClasses, [ FooComponent, BarComponent ]);
+  t.deepEqual(entity.componentClasses, [FooComponent, BarComponent]);
   t.true(entity.read(BarComponent)!.constructor === BarComponent);
 });
 

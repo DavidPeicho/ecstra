@@ -5,11 +5,11 @@ import { World } from '../../src/world.js';
 import { BarComponent, FooComponent } from './utils.js';
 
 test('Query > intersection', (t) => {
-  class MyTagComponent extends TagComponent { }
+  class MyTagComponent extends TagComponent {}
   class MySystem extends System {
     public static queries = {
-      foobar: [ FooComponent, BarComponent],
-      all: [ FooComponent, BarComponent, MyTagComponent ]
+      foobar: [FooComponent, BarComponent],
+      all: [FooComponent, BarComponent, MyTagComponent]
     };
     execute() {}
   }
@@ -18,10 +18,12 @@ test('Query > intersection', (t) => {
   const system = world.system(MySystem)!;
 
   debugger;
-  const entityA = world.create('foobar_entity')
+  const entityA = world
+    .create('foobar_entity')
     .add(FooComponent)
     .add(BarComponent);
-  const entityB = world.create('foobartag_entity')
+  const entityB = world
+    .create('foobartag_entity')
     .add(FooComponent)
     .add(BarComponent)
     .add(MyTagComponent);
@@ -39,7 +41,6 @@ test('Query > intersection', (t) => {
   t.true(system['queries'].all.hasEntity(entityB));
   t.false(system['queries'].all.hasEntity(entityA));
   t.false(system['queries'].all.hasEntity(entityC));
-
 });
 
 test('Query > register system when archetypes already exist', (t) => {
@@ -61,4 +62,3 @@ test('Query > component removed', (t) => {
 test('Query > entity destroyed', (t) => {
   t.true(true);
 });
-

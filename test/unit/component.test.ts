@@ -75,17 +75,17 @@ test('Component > ComponentData > Decorators', (t) => {
     myNumber!: number;
     @string('hello')
     myString!: string;
-    @array([ 'defaultStr1', 'defaultStr2' ])
+    @array(['defaultStr1', 'defaultStr2'])
     myArray!: string[];
     @ref(obj)
-    myRef!: { foo: string, bar: string} | null;
+    myRef!: { foo: string; bar: string } | null;
   }
 
   const component = new TestComponentDecorator();
   t.is(component.myBoolean, true);
   t.is(component.myNumber, 100);
   t.is(component.myString, 'hello');
-  t.deepEqual(component.myArray, [ 'defaultStr1', 'defaultStr2' ]);
+  t.deepEqual(component.myArray, ['defaultStr1', 'defaultStr2']);
   t.is(component.myRef, obj);
 
   component.myNumber = Number.POSITIVE_INFINITY;
