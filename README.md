@@ -18,9 +18,10 @@ Flecs is heavily based on [Ecsy](https://github.com/ecsyjs/ecsy), but mixes conc
 
 My goals for the library is to keep it:
 
-* 💻 Cross Platform & Framework Agnostic 💻
-* 🏋️ Lightweight 🏋️
-*  ⚡ Fast ⚡
+* 💻 Framework Agnostic 💻
+* 🪶 Lightweight 🪶
+* ⚡ Fast ⚡
+* 🏋️ Robust 🏋️
 
 The library will prioritize stability improvements over feature development.
 

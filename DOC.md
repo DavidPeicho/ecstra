@@ -237,6 +237,67 @@ PhysicsSystem.Queries = {
 };
 ```
 
+## Order
+
+### Topological
+
+It's possible to declare relation between system of a same group. Then, the
+group will be sorted based on those relations. Currently, it's possible to
+define hierarchies using:
+
+* `UpdateBefore(list)` ⟶ the system will run **before** all other systems listed
+* `UpdateAfter(list)` ⟶ the system will run **after** all other systems listed
+
+```js
+import { System } from 'flecs';
+
+class SystemA extends System {
+  execute() {}
+}
+SystemA.UpdateAfter = [ SystemC, SystemB ];
+
+class SystemB extends System {
+  execute() {}
+}
+class SystemC extends System {
+  execute() {}
+}
+SystemC.UpdateBefore = [ SystemA ];
+SystemC.UpdateAfter = [ SystemB ];
+```
+
+The group will automatically be sorted using those relations and will the final
+group will be `[ SystemB, SystemC, SystemA ]`.
+
+### Index-based
+
+Sorting topologically is nice, but you may want to change ordering after the
+world is setup with a simple priority system.
+
+Systems can be registered with an order that define the position of execution:
+
+```js
+world.register(SystemB, { order: 0 });
+world.register(SystemC, { order: 1 });
+world.register(SystemA, { order: 2 });
+```
+
+### Notes
+
+At any time, you can change the ordering of systems either by modifying the
+`order` attribute, or even by modifying the static `UpdateBefore` and
+`UpdateAfter` properties (not recommended).
+
+You will simply need to retrieve the group and call the `sort()` method to
+ask for a refresh order of the list:
+
+```js
+const system = world.system(SystemC);
+system.order = 10;
+system.group.sort();
+
+```
+
 # Decorators
 
 ## ComponentData
