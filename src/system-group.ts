@@ -47,13 +47,9 @@ export class SystemGroup<WorldType extends World = World> {
 
     for (const system of systems) {
       // @todo: check for duplicate.
-      // @todo: save the nodes map.
       const Class = system.constructor as SystemClass;
       nodes.set(Class, { next: [], system, visited: false });
     }
-
-    // @todo: use indices instead of changing lenght.
-    systems.length = 0;
     for (const [Class, node] of nodes) {
       if (Class.UpdateAfter) {
         for (const AfterClass of Class.UpdateAfter) {
@@ -67,8 +63,13 @@ export class SystemGroup<WorldType extends World = World> {
           }
         }
       }
-      topologicalSortRec(systems, Class, nodes);
     }
+    // @todo: use indices instead of changing lenght.
+    systems.length = 0;
+    nodes.forEach((node) => {
+      const Class = node.system.constructor as SystemClass;
+      topologicalSortRec(systems, Class, nodes);
+    });
   }
 
   public get world(): WorldType {
@@ -82,7 +83,7 @@ function topologicalSortRec(
   visited: Map<SystemClass, Node>
 ): void {
   const node = visited.get(Class)!;
-  if (!node) {
+  if (!node || node.visited) {
     return;
   }
   node.visited = true;
