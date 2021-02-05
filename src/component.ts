@@ -1,6 +1,5 @@
 import { Property } from './property.js';
 import {
-  ComponentClass,
   Constructor,
   DataComponentClass,
   PropertiesOf

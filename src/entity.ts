@@ -146,7 +146,7 @@ export class Entity {
   /**
    * Returns `true` is this entity is empty, i.e., has no components
    */
-  public get empty(): boolean {
+  public get isEmpty(): boolean {
     return this._components.size === 0;
   }
 

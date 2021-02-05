@@ -20,17 +20,17 @@ test('Entity - add component', (t) => {
   const entity = world.create();
   t.is(entity['_archetype'], null);
 
-  t.false(entity.hasAnyComponent);
+  t.true(entity.isEmpty);
   t.deepEqual(entity.componentClasses, []);
 
   entity.add(FooComponent);
-  t.true(entity.hasAnyComponent);
-  t.true(entity.hasComponent(FooComponent));
+  t.false(entity.isEmpty);
+  t.true(entity.has(FooComponent));
   t.deepEqual(entity.componentClasses, [FooComponent]);
   t.true(entity.read(FooComponent)!.constructor === FooComponent);
 
   entity.add(BarComponent);
-  t.true(entity.hasComponent(BarComponent));
+  t.true(entity.has(BarComponent));
   t.deepEqual(entity.componentClasses, [FooComponent, BarComponent]);
   t.true(entity.read(BarComponent)!.constructor === BarComponent);
 });
@@ -38,23 +38,23 @@ test('Entity - add component', (t) => {
 test('Entity - remove component', (t) => {
   const world = new World();
   const entity = world.create();
-  t.false(entity.hasAnyComponent);
+  t.true(entity.isEmpty);
   t.deepEqual(entity.componentClasses, []);
 
   entity.add(FooComponent);
-  t.true(entity.hasAnyComponent);
+  t.false(entity.isEmpty);
 
   entity.remove(FooComponent);
-  t.false(entity.hasAnyComponent);
-  t.false(entity.hasComponent(FooComponent));
+  t.true(entity.isEmpty);
+  t.false(entity.has(FooComponent));
 
   entity.add(BarComponent).add(FooComponent);
-  t.true(entity.hasComponent(FooComponent));
-  t.true(entity.hasComponent(BarComponent));
+  t.true(entity.has(FooComponent));
+  t.true(entity.has(BarComponent));
 
   entity.remove(BarComponent);
-  t.true(entity.hasComponent(FooComponent));
-  t.false(entity.hasComponent(BarComponent));
+  t.true(entity.has(FooComponent));
+  t.false(entity.has(BarComponent));
 });
 
 test('Entity - destroy', (t) => {
