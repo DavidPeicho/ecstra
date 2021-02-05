@@ -10,9 +10,26 @@ export function Not(Class: ComponentClass) {
   return { Class, kind: QueryComponentOperatorKind.Not, isOperator: true };
 }
 
+/**
+ * Queries allow to retrieve entities based on the component they have.
+ *
+ * Flecs query language can perform the following operations:
+ *   * Intersection of component (&)
+ *   * Negation (!)
+ *
+ * **Notes**: using this class as a standalone will not work because the
+ * world populates tempory data into the query.
+ *
+ * @category query
+ */
 export class Query<E extends Entity = Entity> {
+  /** @hidden */
   private _archetypes: Archetype<E>[];
+
+  /** @hidden */
   private _classes: ComponentClass[];
+
+  /** @hidden */
   private _notClasses: ComponentClass[];
 
   public constructor(components: QueryComponents) {
@@ -28,6 +45,11 @@ export class Query<E extends Entity = Entity> {
     }
   }
 
+  /**
+   * Executes the callback on all entities matching this query
+   *
+   * @param cb - Callback executing on every entity
+   */
   public execute(cb: QueryExecutorVoid): void {
     const archetypes = this._archetypes;
     for (let archId = archetypes.length - 1; archId >= 0; --archId) {
@@ -38,6 +60,12 @@ export class Query<E extends Entity = Entity> {
     }
   }
 
+  /**
+   * Executes the callback on all entities matching this query. If the callback
+   * returns `true` at any point, iteration will stop
+   *
+   * @param cb - Callback executing on every entity
+   */
   public executeUntil(cb: QueryExecutor): void {
     const archetypes = this._archetypes;
     for (let archId = archetypes.length - 1; archId >= 0; --archId) {
@@ -50,6 +78,12 @@ export class Query<E extends Entity = Entity> {
     }
   }
 
+  /**
+   * Returns true if this query definition matches the given archetype
+   *
+   * @param archetype - Archetype to test
+   * @return `true` if a match occurs, `false` otherwise
+   */
   public matches(archetype: Archetype<E>): boolean {
     const notClasses = this._notClasses;
     for (const not of notClasses) {
@@ -66,6 +100,12 @@ export class Query<E extends Entity = Entity> {
     return true;
   }
 
+  /**
+   * Returns `true` if this query has the entity `entity`
+   *
+   * @param entity - Entity to check
+   * @return `true` if the entity matches this query, false otherwise
+   */
   public hasEntity(entity: E): boolean {
     for (const archetype of this._archetypes) {
       if (archetype.hasEntity(entity)) {
@@ -75,6 +115,7 @@ export class Query<E extends Entity = Entity> {
     return false;
   }
 
+  /** Returns the list archetypes stored in this query */
   public get archetypes(): Archetype<E>[] {
     return this._archetypes;
   }

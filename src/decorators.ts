@@ -157,6 +157,9 @@ export function ref<T>(defaultValue?: Nullable<T>) {
 /**
  * Decorator for a reference component property
  *
+ * ## Examples
+ *
+ * ```ts
  * class Vector2() {
  *   static Zero = new Vector2(0, 0);
  *   constructor(x: number, y: number) {
@@ -166,13 +169,13 @@ export function ref<T>(defaultValue?: Nullable<T>) {
  *   copy(source: this): this {
  *     this.x = source.x;
  *     this.y = source.y;
+ *     return this;
  *   }
  *   clone(): Vector2 {
  *     return new (this.constructor)().copy(this);
  *   }
  * }
  *
- * ```ts
  * class MyComponent extends ComponentData {
  *   copyable({ type: Vector2, default: new Vector2(0, 0) })
  *   myCopyable!: Vector2;
