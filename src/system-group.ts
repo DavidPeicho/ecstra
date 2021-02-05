@@ -2,15 +2,57 @@ import { World } from './world.js';
 import { sortByOrder, System } from './system.js';
 import { SystemClass } from './types';
 
+/**
+ * A SystemGroup is used to group systems together. Systems belonging to the
+ * same group can be sorted relative to each other.
+ *
+ * Groups allow to execute logic at different stage. For instance, it's common
+ * to first update all the transforms, and then to render all objects. Groups
+ * can help for those use cases as they will clearly help to separate the
+ * execution into main steps:
+ *   * Update
+ *     * System1
+ *     * ...
+ *     * SystemN
+ *   * Render
+ *     * System1
+ *     * ...
+ *     * SystemN
+ *
+ * Using groups, it's also easier for developers to share systems to other
+ * developers and keep a consistent default ordering
+ *
+ * @category system
+ */
 export class SystemGroup<WorldType extends World = World> {
+  /** Name of the system group class */
   public static Name?: string;
 
+  /**
+   * If `true`, the system group will be executed
+   *
+   * When a group is disabled, none of its systems will be executed
+   */
   public enabled: boolean;
+
+  /**
+   * Order of the group for priority-based sorting. Higher number means that
+   * the group will run last
+   */
   public order: number;
+
+  /** If `true`, systems will be sorted first using topological sorting */
   public useTopologicalSorting: boolean;
 
+  /**
+   * @hidden
+   */
   protected readonly _world: WorldType;
-  protected _systems: System<WorldType>[];
+
+  /**
+   * @hidden
+   */
+  private _systems: System<WorldType>[];
 
   public constructor(world: WorldType) {
     this.enabled = true;
@@ -20,11 +62,21 @@ export class SystemGroup<WorldType extends World = World> {
     this._systems = [];
   }
 
+  /**
+   * Adds the given system to this group.
+   *
+   * **Note**: users **should'nt** call this method manually
+   *
+   * @hidden
+   */
   public add(system: System<WorldType>): void {
     // @todo: checks it's not already added.
     this._systems.push(system);
   }
 
+  /**
+   * Executes the group, i.e., executes all its systems sequentially
+   */
   public execute(delta: number): void {
     const systems = this._systems;
     for (const system of systems) {
@@ -34,6 +86,13 @@ export class SystemGroup<WorldType extends World = World> {
     }
   }
 
+  /**
+   * Sorts the systems topologically first, and then based on the `order` they
+   * define.
+   *
+   * **Note**: if the group property `useTopologicalSorting` is set to `false`,
+   * no topological sorting will occur
+   */
   public sort(): void {
     if (this.useTopologicalSorting) {
       this._sortTopological();
@@ -41,6 +100,9 @@ export class SystemGroup<WorldType extends World = World> {
     this._systems.sort(sortByOrder);
   }
 
+  /**
+   * @hidden
+   */
   private _sortTopological(): void {
     const nodes = new Map<SystemClass, Node>();
     const systems = this._systems;
@@ -72,11 +134,15 @@ export class SystemGroup<WorldType extends World = World> {
     });
   }
 
+  /** Returns the reference to the [[World]] holding this group */
   public get world(): WorldType {
     return this._world;
   }
 }
 
+/**
+ * @hidden
+ */
 function topologicalSortRec(
   result: System[],
   Class: SystemClass,
@@ -93,6 +159,7 @@ function topologicalSortRec(
   result.unshift(node.system);
 }
 
+/** @hidden */
 type Node = {
   next: SystemClass[];
   visited: boolean;
