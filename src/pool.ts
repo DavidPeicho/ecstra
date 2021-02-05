@@ -23,15 +23,16 @@ export class DefaultPool<T> {
     if (this._freeSlot === this._list.length) {
       this.expand(Math.round(this._list.length * 0.2) + 1);
     }
+    if (this._freeSlot === -1) {
+      this._freeSlot = 0;
+    }
     const val = this._list[this._freeSlot]!;
     this._list[this._freeSlot++] = null;
     return val;
   }
 
   public release(value: T): void {
-    if (this._freeSlot === -1) {
-      this._list[this._list.length] = value;
-    } else {
+    if (this._freeSlot >= 0) {
       this._list[--this._freeSlot] = value;
     }
   }
@@ -49,8 +50,12 @@ export class DefaultPool<T> {
     }
   }
 
+  public get allocatedSize(): number {
+    return this._list.length;
+  }
+
   public get used(): number {
-    return this._freeSlot;
+    return this._freeSlot >= 0 ? this._freeSlot : 0;
   }
 }
 

@@ -1,9 +1,5 @@
 import { Property } from './property.js';
-import {
-  Constructor,
-  DataComponentClass,
-  PropertiesOf
-} from './types';
+import { Constructor, DataComponentClass, PropertiesOf } from './types';
 
 export enum ComponentState {
   None = 0,

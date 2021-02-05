@@ -63,6 +63,7 @@ export class World<E extends Entity = Entity> {
     let entity;
     if (this._entityPool) {
       entity = this._entityPool.acquire();
+      entity['_world'] = this;
       entity._pooled = true;
       entity.name = name ?? null;
     } else {
