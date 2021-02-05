@@ -4,6 +4,7 @@ import { World } from './world.js';
 import { Constructor, EntityOf, SystemClass } from './types';
 
 export abstract class System<WorldType extends World = World> {
+  public static Name?: string;
   public static Queries?: StaticQueries;
   public static Group?: Constructor<SystemGroup>;
   public static UpdateAfter?: SystemClass[];

@@ -11,6 +11,7 @@ import {
   Option,
   PropertiesOf
 } from '../types';
+import { process } from '../constants.js';
 
 export class ComponentManager<WorldType extends World> {
   public readonly maxComponentTypeCount: number;
@@ -60,6 +61,13 @@ export class ComponentManager<WorldType extends World> {
     Class: ComponentClass<T>,
     opts?: PropertiesOf<T>
   ): void {
+    if (process.env.NODE_ENV === 'development') {
+      if (entity.has(Class)) {
+        const uuid = entity.id;
+        const name = Class.Name ?? Class.name;
+        console.warn(`adding duplicate component ${name} to entity ${uuid}`);
+      }
+    }
     const data = this.registerComponent(Class);
     let comp = null;
     if (data.pool) {
@@ -107,11 +115,7 @@ export class ComponentManager<WorldType extends World> {
     entity: EntityOf<WorldType>,
     Class: ComponentClass
   ): void {
-    const hash = this._getArchetypeHash(
-      entity,
-      Class,
-      entity.hasComponent(Class)
-    );
+    const hash = this._getArchetypeHash(entity, Class, entity.has(Class));
     this._moveEntityToArchetype(entity, hash);
   }
 

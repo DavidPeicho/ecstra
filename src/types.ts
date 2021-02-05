@@ -32,6 +32,7 @@ export type SystemClass<T extends System = System> = (new (
   group: SystemGroup,
   opts: any
 ) => T) & {
+  Name?: string;
   Queries?: StaticQueries;
   Group?: Constructor<SystemGroup>;
   UpdateAfter?: SystemClass[];

@@ -66,7 +66,7 @@ export class Entity {
     return this._components.get(Class) as Option<T>;
   }
 
-  public hasComponent(Class: ComponentClass): boolean {
+  public has(Class: ComponentClass): boolean {
     return this._components.has(Class);
   }
 
@@ -74,8 +74,8 @@ export class Entity {
     return this._id;
   }
 
-  public get hasAnyComponent(): boolean {
-    return this._components.size > 0;
+  public get empty(): boolean {
+    return this._components.size === 0;
   }
 
   public get componentClasses(): ComponentClass[] {
