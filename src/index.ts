@@ -24,4 +24,4 @@ export * from './property.js';
 export * from './decorators.js';
 
 /** Types. */
-export * from './types';
+export * from './types.js';

@@ -19,6 +19,7 @@ import {
   SystemGroupClass
 } from './types';
 import { Archetype } from './internals/archetype.js';
+import { process } from './constants.js';
 
 export class World<E extends Entity = Entity> {
   protected readonly _components: ComponentManager<this>;
@@ -202,6 +203,13 @@ export class World<E extends Entity = Entity> {
     Class: ComponentClass<T>,
     opts?: PropertiesOf<T>
   ): void {
+    if (process.env.NODE_ENV === 'development') {
+      if (entity.hasComponent(Class)) {
+        const uuid = entity.id;
+        const name = Class.Name ?? Class.name;
+        console.warn(`adding duplicate component ${name} to entity ${uuid}`);
+      }
+    }
     this._components.addComponentToEntity(entity, Class, opts);
   }
 
