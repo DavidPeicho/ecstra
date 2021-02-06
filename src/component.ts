@@ -1,5 +1,5 @@
 import { Property } from './property.js';
-import { Constructor, DataComponentClass, PropertiesOf } from './types';
+import { Constructor, DataComponentClass, Option, PropertiesOf } from './types';
 
 export enum ComponentState {
   None = 0,
@@ -103,11 +103,24 @@ export class ComponentData extends Component {
 
   public constructor() {
     super();
+
     Object.defineProperty(this, 'isDataComponent', { value: true });
-    const properties = (this.constructor as DataComponentClass).Properties;
-    for (const name in properties) {
-      this[name as keyof this] = properties[name].cloneDefault();
-    }
+
+    // Copy default values for properties found in the inheritance hierarchy.
+    let Class = this.constructor as DataComponentClass;
+    do {
+      const staticProps = Class.Properties;
+      if (!staticProps) {
+        continue;
+      }
+      for (const name in staticProps) {
+        const prop = staticProps[name];
+        this[name as keyof this] = prop.cloneDefault();
+      }
+    } while (
+      !!(Class = Object.getPrototypeOf(Class)) &&
+      Class !== ComponentData
+    );
   }
 
   /**
@@ -116,20 +129,16 @@ export class ComponentData extends Component {
    * @param source - Source data to copy into `this` instance. Can be either
    * another component of the same type, or a literal object containing the
    * same properties as the component (mapped to the same types)
-   * @param useDefault - If `true`, missing properties from the source object
-   *   will be reset to their default value specified in the static properties
-   *   list
+   *
    * @return This instance
    */
-  public copy(source: PropertiesOf<this>, useDefault = false): this {
-    const properties = (this.constructor as DataComponentClass).Properties;
-    for (const name in properties) {
-      const prop = properties[name];
-      if (source.hasOwnProperty(name)) {
+  public copy(source: PropertiesOf<this>): this {
+    const Class = this.constructor as DataComponentClass;
+    for (const name in source) {
+      const prop = findProperty(Class, name);
+      if (prop) {
         const value = source[name as keyof PropertiesOf<this>];
         this[name as keyof this] = prop.copy(this[name as keyof this], value);
-      } else if (useDefault) {
-        this[name as keyof this] = prop.copyDefault(this[name as keyof this]);
       }
     }
     return this;
@@ -152,7 +161,29 @@ export class ComponentData extends Component {
    * @return This instance
    */
   public init(source: PropertiesOf<this>): this {
-    return this.copy(source, true);
+    let Class = this.constructor as DataComponentClass;
+    do {
+      // Copy properties found in the inheritance hierarchy. If the property
+      // isn't found in the source, the default value is used.
+      const staticProps = Class.Properties;
+      if (!staticProps) {
+        continue;
+      }
+      for (const name in staticProps) {
+        const prop = staticProps[name];
+        if (source.hasOwnProperty(name)) {
+          const value = source[name as keyof PropertiesOf<this>];
+          this[name as keyof this] = prop.copy(this[name as keyof this], value);
+        } else {
+          this[name as keyof this] = prop.copyDefault(this[name as keyof this]);
+        }
+      }
+    } while (
+      !!(Class = Object.getPrototypeOf(Class)) &&
+      Class !== ComponentData
+    );
+
+    return this;
   }
 }
 
@@ -178,6 +209,18 @@ export class TagComponent extends Component {
     super();
     Object.defineProperty(this, 'isTagComponent', { value: true });
   }
+}
+
+function findProperty(
+  Class: DataComponentClass,
+  name: string
+): Option<Property<any>> {
+  do {
+    if (Class.Properties && name in Class.Properties) {
+      return Class.Properties[name];
+    }
+  } while (!!(Class = Object.getPrototypeOf(Class)) && Class !== ComponentData);
+  return undefined;
 }
 
 export interface Properties {

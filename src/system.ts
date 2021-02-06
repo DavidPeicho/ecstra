@@ -76,7 +76,7 @@ export abstract class System<WorldType extends World = World> {
    * Queries map built automatically from the `Queries` static list on
    * instantiation of the system
    */
-  protected readonly queries: {
+  public readonly queries: {
     [key: string]: Query<EntityOf<WorldType>>;
   };
 
@@ -115,15 +115,25 @@ export abstract class System<WorldType extends World = World> {
    */
   public buildStaticQueries(): this {
     const world = this._group.world;
-    const staticQueries = (this.constructor as SystemClass).Queries;
-    if (staticQueries) {
-      for (const name in staticQueries) {
-        const query = staticQueries[name];
-        // @todo: should we assign queries in the object or should we just
-        // request them using IDs?
-        this.queries[name] = world._requestQuery(query);
-      }
+    for (const name in this.queries) {
+      // Destroys the already-existing queries.
+      world._releaseQuery(this.queries[name]);
+      delete this.queries[name];
     }
+
+    // Build static queries from the inhertiance hierarchy.
+    let Class = this.constructor as SystemClass;
+    do {
+      const staticQueries = Class.Queries;
+      if (staticQueries) {
+        for (const name in staticQueries) {
+          if (!this.queries.hasOwnProperty(name)) {
+            this.queries[name] = world._requestQuery(staticQueries[name]);
+          }
+        }
+      }
+    } while (!!(Class = Object.getPrototypeOf(Class)) && Class !== System);
+
     return this;
   }
 
@@ -133,7 +143,7 @@ export abstract class System<WorldType extends World = World> {
   public abstract execute(delta: number): void;
 
   /** Returns the group in which this system belongs */
-  public get group(): SystemGroup {
+  public get group(): SystemGroup<WorldType> {
     return this._group;
   }
 }
