@@ -1,7 +1,7 @@
 import test from 'ava';
 
 import { Entity } from '../../src/entity.js';
-import {  DefaultPool } from '../../src/pool.js';
+import { DefaultPool } from '../../src/pool.js';
 import { World } from '../../src/world.js';
 import { FooComponent } from './utils.js';
 
@@ -37,7 +37,6 @@ test('Pooling > Component > add & release component', (t) => {
   const world = new World({
     useManualPooling: false
   });
-  debugger;
   const entity = world.create();
   entity.add(FooComponent);
   const ref = entity.read(FooComponent);

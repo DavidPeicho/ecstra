@@ -8,7 +8,7 @@ import { BarComponent, FooBarSystem, FooComponent } from './utils.js';
 
 test('Query > archetype match', (t) => {
   class MyTagComponent extends TagComponent {}
-  const query = new Query([FooComponent, BarComponent]);
+  const query = new Query('', [FooComponent, BarComponent]);
   t.true(query.matches(new Archetype([BarComponent, FooComponent], '')));
   t.true(
     query.matches(
@@ -21,7 +21,11 @@ test('Query > archetype match', (t) => {
 
 test('Query > archetype match (not) operator', (t) => {
   class MyTagComponent extends TagComponent {}
-  const query = new Query([FooComponent, BarComponent, Not(MyTagComponent)]);
+  const query = new Query('', [
+    FooComponent,
+    BarComponent,
+    Not(MyTagComponent)
+  ]);
   t.true(query.matches(new Archetype([BarComponent, FooComponent], '')));
   t.false(
     query.matches(
