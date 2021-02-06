@@ -3,7 +3,7 @@
       "target": "es6",
       "module": "ESNext",
       "moduleResolution": "node",
-      "outDir": "./lib",
+      "outDir": "./dist",
       "declaration": true,
       "sourceMap": false,
       "allowJs": false,

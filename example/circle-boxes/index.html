@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Canvas ECSY example</title>
+    <meta name="description" content="">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="">
+    <style>
+      body {
+				margin: 0px;
+      }
+
+      .note {
+        position: absolute;
+        width: 100%;
+        bottom: 2rem;
+        text-align: center;
+        font-family: monospace;
+        font-size: 1.5rem;
+        text-shadow: 1px 1px 2px #383838;
+        color: #2c3e50;
+      }
+    </style>
+  </head>
+  <body>
+    <script type="module">
+      import {
+        World, System, ComponentData, TagComponent, NumberProp, StringProp
+      } from '../../dist/index.js';
+
+      const NUM_ELEMENTS = 600;
+      const SPEED_MULTIPLIER = 0.1;
+      const SHAPE_SIZE = 20;
+      const SHAPE_HALF_SIZE = SHAPE_SIZE / 2;
+
+      const canvas = document.querySelector("canvas");
+      const canvasWidth = canvas.width = window.innerWidth;
+      const canvasHeight = canvas.height = window.innerHeight;
+      const ctx = canvas.getContext('2d');
+
+      /**
+       * Components
+       */
+
+      class Velocity extends ComponentData {}
+      Velocity.Properties = {
+        x: NumberProp(),
+        y: NumberProp()
+      };
+
+      class Position extends ComponentData {}
+      Position.Properties = {
+        x: NumberProp(),
+        y: NumberProp()
+      };
+
+      class Shape extends ComponentData {}
+      Shape.Properties = {
+        primitive: StringProp()
+      };
+
+      class Renderable extends TagComponent {}
+
+      /**
+       * Systems
+       */
+
+      class MovableSystem extends System {
+        execute(delta, time) {
+          this.queries.moving.execute(entity => {
+            var velocity = entity.read(Velocity);
+            var position = entity.write(Position);
+            position.x += velocity.x * delta;
+            position.y += velocity.y * delta;
+            if (position.x > canvasWidth + SHAPE_HALF_SIZE) position.x = - SHAPE_HALF_SIZE;
+            if (position.x < - SHAPE_HALF_SIZE) position.x = canvasWidth + SHAPE_HALF_SIZE;
+            if (position.y > canvasHeight + SHAPE_HALF_SIZE) position.y = - SHAPE_HALF_SIZE;
+            if (position.y < - SHAPE_HALF_SIZE) position.y = canvasHeight + SHAPE_HALF_SIZE;
+          });
+        }
+      }
+      MovableSystem.Queries = {
+        // The `moving` query looks for entities with both the `Velocity` and
+        // `Position` components.
+        moving: [ Velocity, Position ]
+      };
+
+      class RendererSystem extends System {
+        execute(delta, time) {
+          ctx.globalAlpha = 1;
+          ctx.fillStyle = "#ffffff";
+          ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+          //ctx.globalAlpha = 0.6;
+
+          // Iterate through all the entities on the query
+          this.queries.renderables.execute(entity => {
+            var shape = entity.read(Shape);
+            var position = entity.read(Position);
+            if (shape.primitive === 'box') {
+              this.drawBox(position);
+            } else {
+              this.drawCircle(position);
+            }
+          });
+        }
+
+        drawCircle(position) {
+          ctx.fillStyle = "#888";
+          ctx.beginPath();
+          ctx.arc(position.x, position.y, SHAPE_HALF_SIZE, 0, 2 * Math.PI, false);
+          ctx.fill();
+          ctx.lineWidth = 1;
+          ctx.strokeStyle = "#222";
+          ctx.stroke();
+        }
+
+        drawBox(position) {
+         ctx.beginPath();
+          ctx.rect(position.x - SHAPE_HALF_SIZE, position.y - SHAPE_HALF_SIZE, SHAPE_SIZE, SHAPE_SIZE);
+          ctx.fillStyle= "#f28d89";
+          ctx.fill();
+          ctx.lineWidth = 1;
+          ctx.strokeStyle = "#800904";
+          ctx.stroke();
+        }
+      }
+      RendererSystem.Queries = {
+        // The `renderables` query looks for entities with both the
+        // `Renderable` and `Shape` components.
+        renderables: [Renderable, Shape]
+      }
+      // `UpdateAfter` allows to create static relationships betweem systems
+      // in a same group. Here, we specify that we want the RendererSystem to
+      // run **after** the `MovableSystem`.
+      RendererSystem.UpdateAfter = [ MovableSystem ];
+
+      window.addEventListener( 'resize', () => {
+        canvasWidth = canvas.width = window.innerWidth
+        canvasHeight = canvas.height = window.innerHeight;
+      }, false );
+
+      // Step 1 - Create the world that will host our entities.
+      const world = new World()
+        .register(MovableSystem)
+        .register(RendererSystem);
+
+      // Step 2 - Create entities with random velocity / positions / shapes
+      for (let i = 0; i < NUM_ELEMENTS; i++) {
+        world
+          .create()
+          .add(Velocity, getRandomVelocity())
+          .add(Shape, getRandomShape())
+          .add(Shape, getRandomShape())
+          .add(Position, getRandomPosition())
+          .add(Renderable)
+      }
+
+      // Step 3 - Run all the systems and let the ECS do its job!
+      let lastTime = 0;
+      function run() {
+        // Compute delta and elapsed time.
+        var time = performance.now();
+        var delta = time - lastTime;
+
+        // Runs all the systems.
+        world.execute(delta, time);
+
+        lastTime = time;
+        requestAnimationFrame(run);
+      }
+      lastTime = performance.now();
+      run();
+
+      /**
+       * Set of helpers for component instanciation
+       */
+
+      function getRandomVelocity() {
+        return {
+          x: SPEED_MULTIPLIER * (2 * Math.random() - 1),
+          y: SPEED_MULTIPLIER * (2 * Math.random() - 1)
+        };
+      }
+      function getRandomPosition() {
+        return {
+          x: Math.random() * canvasWidth,
+          y: Math.random() * canvasHeight
+        };
+      }
+      function getRandomShape() {
+         return {
+           primitive: Math.random() >= 0.5 ? 'circle' : 'box'
+         };
+      }
+    </script>
+
+    <p class="note">
+      <a>Example taken and adapted from</a>
+      <a href="https://ecsy.io/" target="_blank">ecsy.io</a>
+    </p>
+    <canvas></canvas>
+
+  </body>
+</html>
