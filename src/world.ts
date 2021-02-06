@@ -20,11 +20,61 @@ import {
 } from './types';
 import { Archetype } from './internals/archetype.js';
 
+/**
+ * The world is the link between entities and systems. The world is composed
+ * of system instances that execute logic on entities with selected components.
+ *
+ * An application can have as many worlds as needed. However, always remember
+ * that entities and components instances are bound to the world that create
+ * them.
+ *
+ * ## Creation
+ *
+ * It's possible to create a world using:
+ *
+ * ```js
+ * const world = new World();
+ * ```
+ *
+ * You can also change the default behaviour of the world using:
+ *
+ * ```js
+ * const world = new World({
+ *   systems: ...,
+ *   components: ...,
+ *   maxComponentType: ...,
+ *   useManualPooling: ...,
+ *   EntityClass: ...
+ * });
+ * ```
+ *
+ * For more information about the options, please have a look a the
+ * [[WorldOptions]] interface
+ *
+ * ## Creating Entities
+ *
+ * Entities should **only** be created using:
+ *
+ * ```js
+ * const entity = world.create('myBeautifulEntity');
+ * ```
+ *
+ * @category world
+ */
 export class World<E extends Entity = Entity> {
+  /** @hidden */
   protected readonly _components: ComponentManager<this>;
+
+  /** @hidden */
   protected readonly _queries: QueryManager<this>;
+
+  /** @hidden */
   protected readonly _systems: SystemManager<this>;
+
+  /** @hidden */
   protected readonly _EntityClass: EntityClass<EntityOf<this>>;
+
+  /** @hidden */
   protected _entityPool: Nullable<EntityPool<this>>;
 
   /** Public API. */
@@ -47,19 +97,51 @@ export class World<E extends Entity = Entity> {
       : null;
   }
 
+  /**
+   * Registers a system in this world instance
+   *
+   * **Note**: only one instance per system class can be registered
+   *
+   * @param Class - Class of the system to register
+   * @param opts - Options forwarded to the constructor of the system
+   *
+   * @return This instance
+   */
   public register<T extends System<this>>(
     Class: SystemClass<T>,
-    opts: SystemRegisterOptions<this>
+    opts?: SystemRegisterOptions<this>
   ): this {
     this._systems.register(Class, opts);
     return this;
   }
 
+  /**
+   * Unregisters the system from this world instance
+   *
+   * ## Notes
+   *
+   *   * Deletes the system and frees its queries if they aren't used by any
+   *     other systems
+   *   * Deletes the group in which the system was if the group is now empty
+   *
+   * @param Class - Class of the system to unregister
+   *
+   * @return This instance
+   */
+  public unregister<T extends System<this>>(Class: SystemClass<T>): this {
+    this._systems.unregister(Class);
+    return this;
+  }
+
+  /**
+   * Creates a new entity
+   *
+   * @param name - Optional name of the entity. The name isn't a read-only
+   *   property and can be changed later
+   *
+   * @return The entity instance
+   */
   public create(name?: string): E {
-    // @todo: __DEV__ #define
-    // if (this._entities.has(id)) {
-    //   throw new Error(`found duplicated entity with id: '${id}'`);
-    // }
     let entity;
     if (this._entityPool) {
       entity = this._entityPool.acquire();
@@ -73,6 +155,12 @@ export class World<E extends Entity = Entity> {
     return entity;
   }
 
+  /**
+   * Executes all systems groups, i.e., executes all registered systems
+   *
+   * @param delta - The delta time elapsed between the last call to `execute`,
+   *   in milliseconds
+   */
   public execute(delta: number): void {
     this._systems.execute(delta);
   }
@@ -121,10 +209,22 @@ export class World<E extends Entity = Entity> {
     return this._entityPool;
   }
 
+  /**
+   * Retrieves the system instance of type `Class`
+   *
+   * @param Class - Class of the system to retrieve
+   * @return The system instance if found, `undefined` otherwise
+   */
   public system<T extends System>(Class: SystemClass<T>): Option<T> {
     return this._systems.system(Class);
   }
 
+  /**
+   * Retrieves the group instance of type `Class`
+   *
+   * @param Class - Class of the group to retrieve
+   * @return The group instance if found, `undefined` otherwise
+   */
   public group<T extends SystemGroup>(Class: SystemGroupClass<T>): Option<T> {
     return this._systems.group(Class);
   }
@@ -143,24 +243,45 @@ export class World<E extends Entity = Entity> {
     return this._components.getComponentPool(Class);
   }
 
+  /**
+   * Returns the unique identifier of the given component typee
+   *
+   * @param Class - Type of the component to retrieve the id for
+   * @return The identifier of the component
+   */
   public getComponentId(Class: ComponentClass): number {
     return this._components.getIdentifier(Class);
   }
 
+  /**
+   * Returns the max number of components this world can store.
+   *
+   * **Note**: the number represents the count of component type (i.e., "class"),
+   * and not the count of instance
+   */
   public get maxComponentTypeCount(): number {
     return this._components.maxComponentTypeCount;
   }
 
   /** Internal API. */
 
+  /**
+   * @hidden
+   */
   public _onArchetypeCreated(archetype: Archetype<EntityOf<this>>): void {
     this._queries.addArchetype(archetype);
   }
 
+  /**
+   * @hidden
+   */
   public _onArchetypeDestroyed(archetype: Archetype<EntityOf<this>>): void {
     this._queries.removeArchetype(archetype);
   }
 
+  /**
+   * @hidden
+   */
   public _onQueryCreated(query: Query<EntityOf<this>>): void {
     const archetypes = this._components.archetypes;
     archetypes.forEach((archetype) =>
@@ -168,8 +289,21 @@ export class World<E extends Entity = Entity> {
     );
   }
 
+  /**
+   * @param {QueryComponents} components
+   * @return todo
+   * @hidden
+   */
   public _requestQuery(components: QueryComponents): Query<EntityOf<this>> {
     return this._queries.request(components);
+  }
+
+  /**
+   * @param {Query} query
+   * @hidden
+   */
+  public _releaseQuery(query: Query<EntityOf<this>>): void {
+    this._queries.release(query);
   }
 
   /**
@@ -192,11 +326,6 @@ export class World<E extends Entity = Entity> {
 
   /**
    * @hidden
-   *
-   * @template T
-   * @param entity -
-   * @param Class -
-   * @param opts -
    */
   public _addComponentRequest<T extends Component>(
     entity: EntityOf<this>,
@@ -208,11 +337,6 @@ export class World<E extends Entity = Entity> {
 
   /**
    * @hidden
-   *
-   * @template T -
-   * @param entity -
-   * @param Class -
-   * @return
    */
   public _removeComponentRequest<T extends Component>(
     entity: EntityOf<this>,
@@ -222,13 +346,13 @@ export class World<E extends Entity = Entity> {
   }
 }
 
-export type WorldOptions<E extends Entity> = {
+export interface WorldOptions<E extends Entity> {
   systems: SystemClass[];
   components: ComponentClass[];
   maxComponentType: number;
   useManualPooling: boolean;
   EntityClass: EntityClass<E>;
-};
+}
 
 export interface SystemRegisterOptions<WorldType extends World> {
   group?: Constructor<SystemGroup<WorldType>>;

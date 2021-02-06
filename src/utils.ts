@@ -1,3 +1,13 @@
+/**
+ * Generates a unique identifier, i.e., UUID
+ *
+ * ## Notes
+ *
+ * This function has been taken directly from Three.js:
+ * https://github.com/mrdoob/three.js/blob/dev/src/math/MathUtils.js
+ *
+ * @return A unique identifier stored in a string
+ */
 export const createUUID = (function () {
   const lut: string[] = [];
   for (let i = 0; i < 256; i++) {

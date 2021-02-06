@@ -24,6 +24,9 @@ export function Not(Class: ComponentClass) {
  */
 export class Query<E extends Entity = Entity> {
   /** @hidden */
+  private readonly _hash: string;
+
+  /** @hidden */
   private _archetypes: Archetype<E>[];
 
   /** @hidden */
@@ -32,7 +35,8 @@ export class Query<E extends Entity = Entity> {
   /** @hidden */
   private _notClasses: ComponentClass[];
 
-  public constructor(components: QueryComponents) {
+  public constructor(hash: string, components: QueryComponents) {
+    this._hash = hash;
     this._archetypes = [];
     this._classes = [];
     this._notClasses = [];
@@ -118,6 +122,10 @@ export class Query<E extends Entity = Entity> {
   /** Returns the list archetypes stored in this query */
   public get archetypes(): Archetype<E>[] {
     return this._archetypes;
+  }
+
+  public get hash(): string {
+    return this._hash;
   }
 }
 

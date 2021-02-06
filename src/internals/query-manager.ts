@@ -5,7 +5,7 @@ import { ComponentClass, EntityOf } from '../types';
 
 export class QueryManager<WorldType extends World> {
   private _world: WorldType;
-  private _queries: Map<string, Query<EntityOf<WorldType>>>;
+  private _queries: Map<string, QueryCache<WorldType>>;
 
   public constructor(world: WorldType) {
     this._world = world;
@@ -13,16 +13,31 @@ export class QueryManager<WorldType extends World> {
   }
 
   public request(components: QueryComponents): Query<EntityOf<WorldType>> {
-    const id = this._getQueryIdentifier(components);
-    if (!this._queries.has(id)) {
+    const hash = this._getQueryIdentifier(components);
+    if (!this._queries.has(hash)) {
       // @todo: what happens when a system is unregistered?
       // @todo: will not work if a system is created after some
       // archetypes already exist.
-      const query = new Query<EntityOf<WorldType>>(components);
-      this._queries.set(id, query);
+      const query = new Query<EntityOf<WorldType>>(hash, components);
+      this._queries.set(hash, { query, useCount: 0 });
       this._world._onQueryCreated(query);
     }
-    return this._queries.get(id)!;
+    const cache = this._queries.get(hash)!;
+    cache.useCount++;
+    return cache.query;
+  }
+
+  public release(query: Query<EntityOf<WorldType>>): void {
+    // @todo: ref count could be moved in Query directly, but that doesn't
+    // fully makes sense semantically.
+    const cache = this._queries.get(query.hash);
+    if (!cache) {
+      return;
+    }
+    if (--cache.useCount === 0) {
+      // Query isn't used anymore by systems. It can safely be removed.
+      this._queries.delete(query.hash);
+    }
   }
 
   public addArchetypeToQuery(
@@ -50,16 +65,20 @@ export class QueryManager<WorldType extends World> {
   public addArchetype(archetype: Archetype<EntityOf<WorldType>>): void {
     const queries = this._queries;
     // @todo: how to optimize that when a lot of archetypes are getting created?
-    for (const [_, query] of queries) {
-      this.addArchetypeToQuery(query, archetype);
+    for (const [_, cache] of queries) {
+      // @todo: ref count could be moved in Query directly, but that doesn't
+      // fully makes sense semantically.
+      this.addArchetypeToQuery(cache.query, archetype);
     }
   }
 
   public removeArchetype(archetype: Archetype<EntityOf<WorldType>>): void {
     const queries = this._queries;
     // @todo: how to optimize that when a lot of archetypes are getting destroyed?
-    for (const [_, query] of queries) {
-      this.removeArchetypeFromQuery(query, archetype);
+    for (const [_, cache] of queries) {
+      // @todo: ref count could be moved in Query directly, but that doesn't
+      // fully makes sense semantically.
+      this.removeArchetypeFromQuery(cache.query, archetype);
     }
   }
 
@@ -82,3 +101,8 @@ export class QueryManager<WorldType extends World> {
     return idList.sort().join('_');
   }
 }
+
+type QueryCache<WorldType> = {
+  query: Query<EntityOf<WorldType>>;
+  useCount: number;
+};

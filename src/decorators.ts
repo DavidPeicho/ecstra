@@ -10,6 +10,7 @@ import {
   RefProp,
   StringProp
 } from './property.js';
+import { QueryComponents } from './query.js';
 import {
   DataComponentClass,
   Nullable,
@@ -232,6 +233,7 @@ export function before(Classes: SystemClass[]) {
  * @return Decorator for a system class declaration
  */
 export function after(Classes: SystemClass[]) {
+  // @todo: merge with existing hierarchy.
   return function (constructor: SystemClass) {
     constructor.UpdateAfter = Classes;
   };
@@ -251,7 +253,30 @@ export function after(Classes: SystemClass[]) {
  * @return Decorator for a system class declaration
  */
 export function group(Class: SystemGroupClass) {
+  // @todo: merge with existing hierarchy.
   return function (constructor: SystemClass) {
     constructor.Group = Class;
+  };
+}
+
+/**
+ * Decorator to specifiy the static queries of a system.
+ *
+ *
+ * ## Examples
+ *
+ * class MyGroup extends SystemGroup {}
+ *
+ * @queries({
+ *   queryA: [ ComponentX, ... ]
+ * })
+ * class MySystem extends System {}
+ *
+ * @param Class - Group class in which this system should be added
+ * @return Decorator for a system class declaration
+ */
+export function queries(QueriesDesc: { [key: string]: QueryComponents }) {
+  return function (constructor: SystemClass) {
+    constructor.Queries = QueriesDesc;
   };
 }

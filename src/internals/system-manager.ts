@@ -44,12 +44,38 @@ export class SystemManager<WorldType extends World> {
     });
     if (!groupInstance) {
       groupInstance = new group(this._world);
+      this._groups.push(groupInstance);
     }
     const system = new Class(groupInstance, opts);
-    this._systems.set(Class, system);
     groupInstance.add(system);
     groupInstance.sort();
+    this._systems.set(Class, system);
     return this;
+  }
+
+  public unregister<T extends System<WorldType>>(Class: SystemClass<T>): void {
+    const system = this._systems.get(Class) as T;
+    if (!system) {
+      if (process.env.NODE_ENV === 'development') {
+        const name = Class.Name ?? Class.name;
+        throw new Error(`system '${name}' is wasn't registered`);
+      }
+      return;
+    }
+    // Destroys queries.
+    for (const name in system.queries) {
+      this._world._releaseQuery(system.queries[name]);
+    }
+    // Removes system from its group.
+    const group = system.group;
+    group._remove(system);
+    if (group.isEmpty) {
+      // The group is in the `_groups` array, otherwise there is an issue
+      // somewhere else.
+      this._groups.splice(this._groups.indexOf(group), 1);
+    }
+    // Deletes system entry.
+    this._systems.delete(Class);
   }
 
   /**
@@ -86,7 +112,7 @@ export class SystemManager<WorldType extends World> {
    */
   public group<T extends SystemGroup>(Class: Constructor<T>): Option<T> {
     return this._groups.find((group: SystemGroup) => {
-      Class === group.constructor;
+      return Class === group.constructor;
     }) as Option<T>;
   }
 

@@ -77,7 +77,7 @@ export class ComponentManager<WorldType extends World> {
       comp = new Class();
     }
     if ((comp as ComponentData).isDataComponent && opts) {
-      (comp as ComponentData).copy(opts, true);
+      (comp as ComponentData).init(opts);
     }
     comp._state = ComponentState.Ready;
     // @todo: check in dev mode for duplicate.

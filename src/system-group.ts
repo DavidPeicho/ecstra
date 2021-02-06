@@ -138,6 +138,19 @@ export class SystemGroup<WorldType extends World = World> {
   public get world(): WorldType {
     return this._world;
   }
+
+  public get isEmpty(): boolean {
+    return this._systems.length === 0;
+  }
+
+  /**
+   * @param {System} system
+   *
+   * @hidden
+   */
+  public _remove(system: System<WorldType>): void {
+    this._systems.splice(this._systems.indexOf(system), 1);
+  }
 }
 
 /**

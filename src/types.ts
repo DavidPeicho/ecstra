@@ -50,6 +50,7 @@ export type DataComponentClass<
 > = Constructor<T> & {
   Name?: string;
   Properties?: Properties;
+  readonly _MergedProoperties: Properties;
 };
 
 /** Class type for a Property derived type */
