@@ -1,10 +1,6 @@
 # flecs
 
 [![Build Status](https://travis-ci.com/DavidPeicho/flecs.svg?branch=main)](https://travis-ci.com/DavidPeicho/flecs)
-[![NPM package][npm]][npm-url]
-[![Build Size][build-size]][build-size-url]
-[![Dev Dependencies][dev-dependencies]][dev-dependencies-url]
-[![Build Status][build-status]][build-status-url]
 
 
 > 🚧 Flecs is a work-in-progress and might be unstable, use it at your
