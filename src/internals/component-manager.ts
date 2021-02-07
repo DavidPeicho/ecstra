@@ -95,8 +95,7 @@ export class ComponentManager<WorldType extends World> {
   }
 
   public getIdentifier(Class: ComponentClass): number {
-    this.registerComponent(Class);
-    return this._data.get(Class)!.identifier;
+    return this.registerComponent(Class).identifier;
   }
 
   public registerComponent(Class: ComponentClass): ComponentCache {

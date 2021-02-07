@@ -22,7 +22,7 @@
     "build:umd": "rollup -c",
     "start": "npm run copy:to:dist && tsc --watch",
     "example": "http-server ./ -c-1 -p 8080 --cors ./example",
-    "lint": "eslint src",
+    "lint": "eslint ./src/**/*.ts",
     "test": "ava",
     "pretty": "prettier ./src/ ./test --write",
     "copy:to:dist": "node --experimental-modules ./scripts/copy-to-dist.js"

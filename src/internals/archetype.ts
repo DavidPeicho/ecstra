@@ -16,11 +16,11 @@ export class Archetype<E extends Entity> {
     return this.entities.indexOf(entity) >= 0;
   }
 
-  public get hash() {
+  public get hash(): string {
     return this._hash;
   }
 
-  public get components() {
+  public get components(): Set<ComponentClass> {
     return this._components;
   }
 }
