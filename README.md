@@ -11,6 +11,10 @@ Get started with:
 
 > 🔍 I am currently looking for people to help me to identify their needs in order to drive the development of this [library further](#stable-version).
 
+<p align="center">
+  <img src="./example.gif">
+</p>
+
 ## Philosophy
 
 Flecs is heavily based on [Ecsy](https://github.com/ecsyjs/ecsy), but mixes concepts from other great ECS. It also share some concepts with
