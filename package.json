@@ -1,10 +1,10 @@
 {
-  "name": "flecs",
+  "name": "ecstra",
   "version": "0.0.1",
   "description": "Fast & Flexible EntityComponentSystem (ECS) for JavaScript & TypeScript",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/DavidPeicho/flecs.git"
+    "url": "git+https://github.com/DavidPeicho/ecstra.git"
   },
   "author": "David Peicho <david.peicho@gmail.com>",
   "license": "MIT",
@@ -14,7 +14,7 @@
     "game"
   ],
   "type": "module",
-  "main": "./umd/fecs.js",
+  "main": "./umd/ecstra.js",
   "module": "./index.js",
   "types": "./index.d.ts",
   "scripts": {
