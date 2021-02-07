@@ -68,8 +68,8 @@ yarn link ecstra
 ```
 
 ```js
-import { World } from 'flecs';
+import { World } from 'ecstra';
 
-// You can use Flecs as if it was a npm-installed dependency
+// You can use Ecstra as if it was a npm-installed dependency
 const world = new World();
 ```
