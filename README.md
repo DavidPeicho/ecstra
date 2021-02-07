@@ -65,7 +65,90 @@ The library is distributed as an ES6 module, but also comes with two UMD builds:
 ## Usage Example
 
 ```js
-class Component {}
+import {
+  ComponentData,
+  TagComponent,
+  NumberProp,
+  RefProp,
+  World
+} from 'flecs';
+
+/**
+ * Components definition.
+ */
+
+class Position2D extends ComponentData {}
+Position2D.Properties = {
+  x: NumberProp(),
+  y: NumberProp()
+};
+
+class FollowTarget extends ComponentData {}
+FollowTarget.Properties = {
+  target: RefProp(),
+  speed: NumberProp(1.0)
+};
+
+class PlayerTag extends TagComponent {}
+class ZombieTag extends TagComponent {}
+
+/**
+ * Systems definition.
+ */
+
+class ZombieFollowSystem extends System {
+
+  execute(delta) {
+    this.queries.zombies.execute((entity) => {
+      const { speed, target } = entity.read(FollowTarget);
+      const position = entity.write(Position2D);
+      const deltaX = target.x - position.x;
+      const deltaY = target.y - position.y;
+      const len = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+      if (len >= 0.00001) {
+        position.x += speed * delta * (deltaX / len);
+        position.y += speed * delta * (deltaY / len);
+      }
+    });
+  }
+
+}
+ZombieFollowSystem.Queries = {
+  // Select entities with all three components `ZombieTag`, `FollowTarget`, and
+  // `Position2D`.
+  zombies: [ZombieTag, FollowTarget, Position2D]
+}
+
+const world = new World();
+
+// Creates a player entity.
+const playerEntity = world.create().add(PlayerTag).add(Position2D);
+const playerPosition = playerEntity.read();
+
+// Creates 100 zombies at random positions with a `FollowTarget` component that
+// will make them follow our player.
+for (let i = 0; i < 100; ++i) {
+  world.create()
+    .add(ZombieTag)
+    .add(Position2D, {
+      x: Math.floor(Math.random() * 50.0) - 100.0,
+      y: Math.floor(Math.random() * 50.0) - 100.0
+    })
+    .add(FollowTarget, { target: playerPosition })
+}
+
+// Runs the animation loop and execute all systems every frame.
+
+let lastTime = 0.0;
+function loop() {
+  const currTime = performance.now();
+  const deltaTime = currTime - lastTime;
+  lastTime = currTime;
+  world.execute(deltaTime);
+  requestAnimationFrame(loop);
+}
+lastTime = performance.now();
+loop();
 ```
 
 ## Stable Version
