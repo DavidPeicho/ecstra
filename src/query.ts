@@ -1,6 +1,6 @@
 import { Entity } from './entity.js';
 import { Archetype } from './internals/archetype.js';
-import { ComponentClass } from './types';
+import { ComponentClass, Option } from './types';
 
 enum QueryComponentOperatorKind {
   Not = 'not'
@@ -117,6 +117,14 @@ export class Query<E extends Entity = Entity> {
       }
     }
     return false;
+  }
+
+  public get first(): Option<E> {
+    const archetypes = this._archetypes;
+    if (archetypes.length > 0 && archetypes[0].entities.length > 0) {
+      return archetypes[0].entities[0];
+    }
+    return undefined;
   }
 
   /** Returns the list archetypes stored in this query */
