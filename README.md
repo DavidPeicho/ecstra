@@ -9,7 +9,7 @@
 Fast & Flexible EntityComponentSystem (ECS) for JavaScript and Typescript, available in browser and Node.js.
 
 Get started with:
-* The [Documentation](./doc.md)
+* The [Documentation](./DOC.md)
 * The [Examples](./example)
 
 > 🔍 I am currently looking for people to help me to identify their needs in order to drive the development of this [library further](#stable-version).
