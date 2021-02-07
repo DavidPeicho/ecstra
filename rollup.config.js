@@ -1,4 +1,3 @@
-import resolve from "@rollup/plugin-node-resolve";
 import replace from "@rollup/plugin-replace";
 import { terser } from "rollup-plugin-terser";
 
@@ -16,7 +15,7 @@ export default [
         format: 'umd',
         name: 'FECS',
         noConflict: true,
-        file: 'dist/umd/fecs.js'
+        file: 'dist/umd/ecstra.js'
       }
     ]
   },
@@ -34,7 +33,7 @@ export default [
         format: 'umd',
         name: 'FECS',
         noConflict: true,
-        file: 'dist/umd/fecs.min.js'
+        file: 'dist/umd/ecstra.min.js'
       }
     ]
   }

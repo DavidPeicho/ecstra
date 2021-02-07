@@ -5,7 +5,7 @@ The `World` is the data structure holding all entities, as well as all the syste
 ## Creation
 
 ```js
-import { World } from 'flecs';
+import { World } from 'ecstra';
 
 const world = new World();
 ```
@@ -67,7 +67,7 @@ entity.addComponent(MyComponent, {
 If you plan on reading a component, please use
 
 ```js
-import { ComponentData, StringProp } from 'flecs';
+import { ComponentData, StringProp } from 'ecstra';
 
 class MyComponent extends ComponentData {}
 
@@ -83,8 +83,8 @@ You can also retrieve a component in read-write mode
 
 ```js
 const component = entity.write(MyComponent);
-component.myString = 'Hello Flecs!';
-console.log(component.myString); // 'Hello Flecs!'
+component.myString = 'Hello Ecstra!';
+console.log(component.myString); // 'Hello Ecstra!'
 ```
 
 > NOTE: Right now, reading a component as read-only or as read-write
@@ -104,14 +104,14 @@ a look at the ['Pooling' section](#pooling).
 # Components
 
 Components contain data attached to entity and used by systems to
-apply logic on those entities. `flecs` exposes several type of components that will serve different purposes.
+apply logic on those entities. Ecstra exposes several type of components that will serve different purposes.
 
 ## ComponentData
 
 Components deriving `ComponentData` can use the automatic initialization and copy of components. `ComponentData` can declare a property schema and the component will be initialized automatically.
 
 ```js
-import { ComponentData, NumberProp } from 'flecs';
+import { ComponentData, NumberProp } from 'ecstra';
 
 class HealthComponent extends ComponentData {}
 
@@ -143,7 +143,7 @@ kind of component or an object with the same properties
 
 Thankfully, you will not need to override those methods if you use the `Properties` schema. Those methods will automatically use the properties definition in order to know how to initialize and copy the component.
 
-`flecs` already comes with a few basic property types:
+Ecstra already comes with a few basic property types:
 
 * `BooleanProp` ⟶ Defaults to `false`
 * `NumberProp` ⟶ Defaults to `0`
@@ -249,7 +249,7 @@ define hierarchies using:
 * `UpdateAfter(list)` ⟶ the system will run **after** all other systems listed
 
 ```js
-import { System } from 'flecs';
+import { System } from 'ecstra';
 
 class SystemA extends System {
   execute() {}
@@ -385,7 +385,7 @@ Instead of using automatic pooling, it's possible to manage pools
 one by one. You can assign a pool to a component type:
 
 ```js
-import { DefaultPool } from 'flecs';
+import { DefaultPool } from 'ecstra';
 
 world.setComponentPool(MyComponentClass, new DefaultPool());
 ```

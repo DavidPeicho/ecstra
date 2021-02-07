@@ -1,9 +1,9 @@
-# Flecs
+# Ecstra
 
-[![Build Status](https://travis-ci.com/DavidPeicho/flecs.svg?branch=main)](https://travis-ci.com/DavidPeicho/flecs)
+[![Build Status](https://travis-ci.com/DavidPeicho/ecstra.svg?branch=main)](https://travis-ci.com/DavidPeicho/ecstra)
 
 
-> 🚧 Flecs is a work-in-progress and might be unstable, use it at your
+> 🚧 Ecstra is a work-in-progress and might be unstable, use it at your
 > own risks 🚧
 
 Fast & Flexible EntityComponentSystem (ECS) for JavaScript and Typescript, available in browser and Node.js.
@@ -20,7 +20,7 @@ Get started with:
 
 ## Philosophy
 
-Flecs is heavily based on [Ecsy](https://github.com/ecsyjs/ecsy), but mixes concepts from other great ECS. It also share some concepts with
+Ecstra (pronounced as "eck-stra") is heavily based on [Ecsy](https://github.com/ecsyjs/ecsy), but mixes concepts from other great ECS. It also share some concepts with
 [Hecs](https://github.com/gohyperr/hecs/).
 
 My goals for the library is to keep it:
@@ -49,13 +49,13 @@ The library will prioritize stability improvements over feature development.
 Using npm:
 
 ```sh
-npm install flecs
+npm install ecstra
 ```
 
 Using yarn
 
 ```sh
-yarn add flecs
+yarn add ecstra
 ```
 
 The library is distributed as an ES6 module, but also comes with two UMD builds:
@@ -71,7 +71,7 @@ import {
   NumberProp,
   RefProp,
   World
-} from 'flecs';
+} from 'ecstra';
 
 /**
  * Components definition.
@@ -163,7 +163,7 @@ I want to open discussion about the following topics:
   * New selector (`Modified`? `Removed`?)
 * Is a `StateComponent` component needed?
 
-Please feel free to reach out directly in the [Github Issues](https://github.com/DavidPeicho/flecs/issues) or contact me on [Twitter](https://twitter.com/DavidPeicho) to discuss those topics.
+Please feel free to reach out directly in the [Github Issues](https://github.com/DavidPeicho/ecstra/issues) or contact me on [Twitter](https://twitter.com/DavidPeicho) to discuss those topics.
 
 ## Benchmarks
 
