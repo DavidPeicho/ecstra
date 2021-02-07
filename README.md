@@ -20,6 +20,8 @@ Get started with:
 
 ## Philosophy
 
+> Created as 'Flecs', it's been renamed to 'Ecstra' to avoid duplicate
+
 Ecstra (pronounced as "eck-stra") is heavily based on [Ecsy](https://github.com/ecsyjs/ecsy), but mixes concepts from other great ECS. It also share some concepts with
 [Hecs](https://github.com/gohyperr/hecs/).
 
