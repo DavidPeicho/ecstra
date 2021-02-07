@@ -5,7 +5,7 @@
 Start first by cloning the package and installing the development dependencies:
 
 ```sh
-cd flecs && yarn
+cd ecstra && yarn
 ```
 
 ## Tests
@@ -48,7 +48,7 @@ it out.
 
 ## Local Link
 
-In order to link this package to another one, you can either use `yarn add file:[PATH_TO_FLECS]`
+In order to link this package to another one, you can either use `yarn add file:[PATH_TO_ECSTRA]`
 with a local path, or `yarn link`.
 
 Just be careful: the package that is published (and so that you should link)
@@ -60,11 +60,11 @@ cd dist
 yarn link # Link the package generated in the `dist` folder
 ```
 
-In you local application, you can now use the `flecs` package:
+In you local application, you can now use the `ecstra` package:
 
 ```sh
 cd my-app
-yarn link flecs
+yarn link ecstra
 ```
 
 ```js
