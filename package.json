@@ -21,7 +21,7 @@
     "build:ts": "tsc",
     "build:umd": "rollup -c",
     "start": "npm run copy:to:dist && tsc --watch",
-    "examples": "http-server ./ -c-1 -p 8080 --cors ./example",
+    "example": "http-server ./ -c-1 -p 8080 --cors ./example",
     "lint": "eslint src",
     "test": "ava",
     "pretty": "prettier ./src/ ./test --write",
