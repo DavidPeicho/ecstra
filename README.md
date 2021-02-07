@@ -1,4 +1,4 @@
-# flecs
+# Flecs
 
 [![Build Status](https://travis-ci.com/DavidPeicho/flecs.svg?branch=main)](https://travis-ci.com/DavidPeicho/flecs)
 
