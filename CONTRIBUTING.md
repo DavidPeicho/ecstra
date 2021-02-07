@@ -48,8 +48,8 @@ it out.
 
 ## Local Link
 
-In order to link this package to another one, you can either use `npm install`
-with a local path, or `npm link`.
+In order to link this package to another one, you can either use `yarn add file:[PATH_TO_FLECS]`
+with a local path, or `yarn link`.
 
 Just be careful: the package that is published (and so that you should link)
 is in the `dist` folder.
