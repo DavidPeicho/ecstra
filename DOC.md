@@ -198,7 +198,7 @@ SpeedComponent.Properties = {
 
 class PhysicsSystem extends System {
 
-  tick(delta) {
+  execute(delta) {
     // `query` contains **every** entity that has at least the
     // components `SpeedComponent` and `TransformComponent`.
     const query = this.queries.entitiesWithBox;
@@ -206,7 +206,7 @@ class PhysicsSystem extends System {
     query.execute((entity) => {
       const transform = entity.write(TransformComponent);
       const speed = entity.read(SpeedComponent);
-      transform.y = Math.max(0.0, transform.y - speed.value);
+      transform.y = Math.max(0.0, transform.y - speed.value * delta);
     });
   }
 
@@ -216,7 +216,7 @@ PhysicsSystem.Queries = {
 };
 ```
 
-The `tick()` method is automatically called. This is where most (all if possible) of your logic should happen.
+The `execute()` method is automatically called. This is where most (all if possible) of your logic should happen.
 
 The `Queries` static properties list all the queries you want to
 cache. Queries are created when the system is instantiated, and are
