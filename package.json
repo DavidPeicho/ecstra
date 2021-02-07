@@ -1,5 +1,5 @@
 {
-  "name": "fecs",
+  "name": "flecs",
   "version": "0.0.1",
   "description": "Fast & Flexible EntityComponentSystem (ECS) for JavaScript & TypeScript",
   "repository": {
@@ -10,7 +10,8 @@
   "license": "MIT",
   "keywords": [
     "ecs",
-    "entity component system"
+    "entity component system",
+    "game"
   ],
   "type": "module",
   "main": "./umd/fecs.js",

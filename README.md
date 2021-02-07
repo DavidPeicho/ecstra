@@ -10,7 +10,7 @@ Fast & Flexible EntityComponentSystem (ECS) for JavaScript and Typescript, avail
 
 Get started with:
 * The [Documentation](./doc.md)
-* The [Examples](./examples)
+* The [Examples](./example)
 
 > 🔍 I am currently looking for people to help me to identify their needs in order to drive the development of this [library further](#stable-version).
 
@@ -38,9 +38,29 @@ The library will prioritize stability improvements over feature development.
 * System Grouping
 * System Topological Sorting
 * Automatic Component Registration
+* Component Properties Merging
+* System Queries Merging
 * TypeScript Decorators
   * For component properties
   * For system ordering and configuration
+
+## Install
+
+Using npm:
+
+```sh
+npm install flecs
+```
+
+Using yarn
+
+```sh
+yarn add flecs
+```
+
+The library is distributed as an ES6 module, but also comes with two UMD builds:
+* `fecs/umd/fecs.js` → Development build with debug assertions
+* `fecs/umd/fecs.min.js` → Minified production build, without  debug assertions
 
 ## Usage Example
 
@@ -64,7 +84,7 @@ Please feel free to reach out directly in the [Github Issues](https://github.com
 
 ## Benchmarks
 
-TODO
+Coming soon.
 
 ## Contributing
 
