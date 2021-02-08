@@ -10,7 +10,8 @@ Fast & Flexible EntityComponentSystem (ECS) for JavaScript and Typescript, avail
 
 Get started with:
 * The [Documentation](./DOC.md)
-* The [Examples](./example)
+* The [JavaScript Examples](./example)
+* The [TypeScript Examples](./example/typescript)
 
 > 🔍 I am currently looking for people to help me to identify their needs in order to drive the development of this [library further](#stable-version).
 
@@ -151,6 +152,39 @@ function loop() {
 }
 lastTime = performance.now();
 loop();
+```
+
+## Running Examples
+
+In order to try the examples, you need to build the library using:
+
+```sh
+yarn build # Alternatively, `yarn start` to watch the files
+```
+
+You can then start the examples web server using:
+
+```sh
+yarn example
+```
+
+### TS Examples
+
+TypeScript versions of the examples are available [here](.examples/typescript).
+If you only want to see the example running, you can run the JS ones as they
+are identicial.
+
+If you want to run the TypeScript examples themselves, please build the examples
+first:
+
+```sh
+yarn example:build # Alternatively, `yarn example:start` to watch the files
+```
+
+And then run the examples web server:
+
+```sh
+yarn example
 ```
 
 ## Stable Version

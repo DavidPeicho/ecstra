@@ -3,3 +3,6 @@
 node_modules
 
 dist/
+# Ignores generated js files in TS examples
+./examples/typescript/**/*.js
+
