@@ -1,31 +1,55 @@
+import { performance } from 'perf_hooks';
+
 class Stats {
 
   private _count: number;
+  private _memCount: number;
   private _elapsed: number;
   private _min: number;
   private _max: number;
   private _lastTimeStamp: number;
+  private _lastMemory: number;
+
+  private _memory: number;
 
   public constructor() {
     this._count = 0;
+    this._memCount = 0;
     this._elapsed = 0.0;
+    this._memory = 0.0;
     this._lastTimeStamp = 0.0;
+    this._lastMemory = 0.0;
     this._min = Number.POSITIVE_INFINITY;
     this._max = Number.NEGATIVE_INFINITY;
   }
 
   public start(): void {
     this._lastTimeStamp = performance.now();
+    this._lastMemory = process.memoryUsage().heapUsed;
   }
 
   public stop(): void {
     const time = performance.now() - this._lastTimeStamp;
+    const memory = process.memoryUsage().heapUsed - this._lastMemory;
+
     this._elapsed += time;
+    this._min = Math.min(this._min, time);
+    this._max = Math.max(this._max, time);
     ++this._count;
+
+    if (memory >= 0) {
+      this._memory += memory;
+      ++this._memCount;
+    }
   }
 
   public get average(): number {
     return this._elapsed / this._count;
+
+  }
+
+  public get memoryAverage(): number {
+    return this._memory / this._memCount;
   }
 
   public get min(): number {
@@ -78,11 +102,12 @@ export class Benchmark {
     return this._groups.get(name)!;
   }
 
-  public run(): void {
-    const results = [] as BenchmarkGroupResult[];
+  public run(): BenchmarkGroupResult[] {
+    const benchmarks = [] as BenchmarkGroupResult[];
     this._groups.forEach((group: BenchmarkGroup) => {
-      this._runGroup(results, group)
+      this._runGroup(benchmarks, group)
     });
+    return benchmarks;
   }
 
   private _runGroup(results: BenchmarkGroupResult[], group: BenchmarkGroup): void {
@@ -96,22 +121,24 @@ export class Benchmark {
       const stats = new Stats();
       const iterations = sample.iterations ?? 10;
       for (let i = 0; i < iterations; ++i) {
-        const context = {};
+        let context = {} as Context | null;
         if (sample.setup) {
-          sample.setup(context);
+          sample.setup(context as Context);
         }
         // @todo: add async.
-        stats.start();
-        sample.code(context);
-        stats.stop();
-
         if (global.gc) {
           global.gc();
         }
+        stats.start();
+        sample.code(context as Context);
+        stats.stop();
+        context = null;
       }
       result.samples.push({
         name: sample.name ?? 'unnamed sample',
+        iterations,
         average: stats.average,
+        memoryAverage: stats.memoryAverage,
         min: stats.min,
         max: stats.max
       });
@@ -120,7 +147,7 @@ export class Benchmark {
 
 }
 
-interface Context {
+export interface Context {
   [ key: string ]: any;
 }
 
@@ -133,7 +160,9 @@ interface Sample {
 
 interface BenchmarkSampleResult {
   name: string;
+  iterations: number;
   average: number;
+  memoryAverage: number;
   min: number;
   max: number;
 }
