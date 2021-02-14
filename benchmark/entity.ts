@@ -83,7 +83,20 @@ export default function(benchmark: Benchmark): void {
       }
     })
     .add({
-      name: 'add data component to entity',
+      name: 'add tag component to entity - existing archetype',
+      iterations: 1,
+      setup: function(ctx: Context) {
+        ctx.world = new World();
+        ctx.world.create().add(MyTagComponent);
+        ctx.entity = ctx.world.create();
+
+      },
+      code: function(ctx: Context) {
+        ctx.entity.add(MyTagComponent);
+      }
+    })
+    .add({
+      name: 'add data component to entity - creates archetype',
       iterations: 1,
       setup: function(ctx: Context) {
         ctx.world = new World();
