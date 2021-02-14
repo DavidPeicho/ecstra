@@ -10,6 +10,8 @@ export { System } from './system.js';
 export { SystemGroup } from './system-group.js';
 export { World } from './world.js';
 
+export { ComponentRegisterOptions } from './internals/component-manager';
+
 /** Misc */
 
 export { DefaultPool, ObjectPool } from './pool.js';

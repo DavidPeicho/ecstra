@@ -18,7 +18,7 @@ test('Entity - create entity default', (t) => {
 test('Entity - add component', (t) => {
   const world = new World();
   const entity = world.create();
-  t.is(entity['_archetype'], null);
+  t.is(entity['_archetype'], world['_components']['_emptyArchetype']);
 
   t.true(entity.isEmpty);
   t.deepEqual(entity.componentClasses, []);

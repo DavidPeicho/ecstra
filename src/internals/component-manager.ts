@@ -1,11 +1,12 @@
 import { Component, ComponentState, ComponentData } from '../component.js';
 import { Entity } from '../entity.js';
-import { DefaultPool, ObjectPool } from '../pool.js';
+import { ObjectPool } from '../pool.js';
 import { World } from '../world.js';
 import { Archetype } from './archetype.js';
 import {
   ComponentClass,
   ComponentOf,
+  Constructor,
   EntityOf,
   Nullable,
   Option,
@@ -17,37 +18,39 @@ export class ComponentManager<WorldType extends World> {
   public readonly maxComponentTypeCount: number;
 
   public readonly archetypes: Map<string, Archetype<EntityOf<WorldType>>>;
+
   private readonly _world: WorldType;
   private readonly _data: Map<ComponentClass, ComponentCache>;
+  private readonly _DefaulPool: Nullable<Constructor<ObjectPool<Component>>>;
 
-  private readonly _useManualPooling: boolean;
-
-  private readonly _emptyHash: string;
+  private readonly _emptyArchetype: Archetype<EntityOf<WorldType>>;
   private _lastIdentifier: number;
 
   public constructor(world: WorldType, options: ComponentManagerOptions) {
-    const { maxComponentType, useManualPooling } = options;
+    const {
+      maxComponentType,
+      ComponentPoolClass = null
+    } = options;
     this.maxComponentTypeCount = maxComponentType;
     this._world = world;
     this.archetypes = new Map();
     this._data = new Map();
-    this._useManualPooling = useManualPooling;
+    this._DefaulPool = ComponentPoolClass;
     this._lastIdentifier = 0;
-    this._emptyHash = '0'.repeat(maxComponentType);
-
-    this.archetypes.set(this._emptyHash, new Archetype([], this._emptyHash));
+    this._emptyArchetype = new Archetype([], '0'.repeat(maxComponentType));
+    this.archetypes.set(this._emptyArchetype.hash, this._emptyArchetype);
   }
 
   public initEntity(entity: EntityOf<WorldType>): void {
-    const archetype = this.archetypes.get(this._emptyHash)!;
-    archetype.entities.push(entity);
+    this._emptyArchetype.entities.push(entity);
+    entity._archetype = this._emptyArchetype;
   }
 
   public destroyEntity(entity: Entity): void {
     const archetype = entity.archetype;
     if (archetype) {
       archetype.entities.splice(archetype.entities.indexOf(entity), 1);
-      entity['_archetype'] = null;
+      entity._archetype = null;
       // @todo: that may not be really efficient if an archetype is always
       // composed of one entity getting attached / dettached.
       if (archetype.entities.length === 0) {
@@ -81,7 +84,7 @@ export class ComponentManager<WorldType extends World> {
     }
     comp._state = ComponentState.Ready;
     // @todo: check in dev mode for duplicate.
-    entity['_components'].set(Class, comp);
+    entity._components.set(Class, comp);
     this.updateArchetype(entity, Class);
   }
 
@@ -98,16 +101,32 @@ export class ComponentManager<WorldType extends World> {
     return this.registerComponent(Class).identifier;
   }
 
+  public registerComponentManual(Class: ComponentClass, opts?: ComponentRegisterOptions): void {
+    if (process.env.NODE_ENV === 'development') {
+      if (this._data.has(Class)) {
+        const name = Class.Name ?? Class.name;
+        console.warn(`component ${name} is already registered`);
+      }
+    }
+    if (this._lastIdentifier >= this.maxComponentTypeCount) {
+      throw new Error('reached maximum number of components registered.');
+    }
+    const identifier = this._lastIdentifier++;
+    let pool = null as Nullable<ObjectPool<Component>>;
+    if (opts && opts.pool) {
+      pool = opts.pool;
+    } else if (this._DefaulPool) {
+      pool = new this._DefaulPool(Class);
+      pool.expand(1);
+    }
+    this._data.set(Class, { identifier, pool });
+  }
+
   public registerComponent(Class: ComponentClass): ComponentCache {
     if (!this._data.has(Class)) {
-      if (this._lastIdentifier >= this.maxComponentTypeCount) {
-        throw new Error('reached maximum number of components registered.');
-      }
-      const identifier = this._lastIdentifier++;
-      const pool = !this._useManualPooling ? new DefaultPool(Class) : null;
-      this._data.set(Class, { identifier, pool });
+      this.registerComponentManual(Class);
     }
-    return this._data.get(Class)!;
+    return this._data.get(Class) as ComponentCache;
   }
 
   public updateArchetype(
@@ -168,26 +187,38 @@ export class ComponentManager<WorldType extends World> {
     if (!this.archetypes.has(hash)) {
       const classes = entity.componentClasses;
       const archetype = new Archetype<EntityOf<WorldType>>(classes, hash);
-      this.archetypes.set(hash, archetype);
+      this.archetypes.set(archetype.hash, archetype);
       this._world._onArchetypeCreated(archetype);
     }
-    const archetype = this.archetypes.get(hash)!;
-    archetype.entities.push(entity);
-    entity['_archetype'] = archetype;
+    const archetype = this.archetypes.get(hash) as Archetype<EntityOf<WorldType>>;
+    const entities = archetype.entities;
+    entity._indexInArchetype = entities.length;
+    entity._archetype = archetype;
+    entities.push(entity);
   }
 
   private _removeEntityFromArchetype(entity: EntityOf<WorldType>): void {
-    const archetype = entity.archetype;
-    if (archetype) {
-      entity['_archetype'] = null;
-      // Removes from previous archetype
-      archetype.entities.splice(archetype.entities.indexOf(entity), 1);
-      // @todo: that may not be really efficient if an archetype is always
-      // composed of one entity getting attached / dettached.
-      if (archetype.entities.length === 0) {
-        this.archetypes.delete(archetype.hash);
-        this._world._onArchetypeDestroyed(archetype);
-      }
+    const archetype = entity.archetype as Archetype<EntityOf<WorldType>>;
+    const entities = archetype.entities;
+
+    // Move last entity to removed location.
+    if (entities.length > 1) {
+      const last = entities[entities.length - 1];
+      last._indexInArchetype = entity._indexInArchetype;
+      entities[entity._indexInArchetype] = last;
+      entities.pop();
+    } else {
+      entities.length = 0;
+    }
+
+    entity._archetype = null;
+    entity._indexInArchetype = -1;
+
+    // @todo: that may not be really efficient if an archetype is always
+    // composed of one entity getting attached / dettached.
+    if (archetype !== this._emptyArchetype && archetype.empty) {
+      this.archetypes.delete(archetype.hash);
+      this._world._onArchetypeDestroyed(archetype);
     }
   }
 
@@ -196,16 +227,20 @@ export class ComponentManager<WorldType extends World> {
     Class: ComponentClass,
     added: boolean
   ): string {
-    const index = this._world['_components'].getIdentifier(Class);
+    const index = this.getIdentifier(Class);
     const entry = added ? '1' : '0';
-    const hash = entity.archetype ? entity.archetype.hash : this._emptyHash;
-    return `${hash.substring(0, index)}${entry}${hash.substring(index + 1)}`;
+    const arch = entity.archetype!;
+    return `${arch.hash.substring(0, index)}${entry}${arch.hash.substring(index + 1)}`;
   }
+}
+
+export interface ComponentRegisterOptions {
+  pool?: ObjectPool<Component>;
 }
 
 export type ComponentManagerOptions = {
   maxComponentType: number;
-  useManualPooling: boolean;
+  ComponentPoolClass: Nullable<Constructor<ObjectPool<Component>>>;
 };
 
 type ComponentCache = {

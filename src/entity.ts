@@ -32,16 +32,6 @@ export class Entity {
   /**
    * @hidden
    */
-  private _world: World;
-
-  /**
-   * @hidden
-   */
-  private readonly _id!: string;
-
-  /**
-   * @hidden
-   */
   public readonly _components: Map<ComponentClass, Component>;
 
   /**
@@ -52,15 +42,30 @@ export class Entity {
   /**
    * @hidden
    */
-  private _archetype: Nullable<Archetype<this>>;
+  public _archetype: Nullable<Archetype<this>>;
 
-  public constructor(world: World, name?: string) {
+  /**
+   * @hidden
+   */
+  public _indexInArchetype: number;
+
+  /**
+   * @hidden
+   */
+  private _world!: World;
+
+  /**
+   * @hidden
+   */
+  private readonly _id!: string;
+
+  public constructor(name?: string) {
     this.name = name ?? null;
     this._id = createUUID();
     this._components = new Map();
     this._pendingComponents = [];
-    this._world = world;
     this._archetype = null;
+    this._indexInArchetype = -1;
     this._pooled = false;
   }
 

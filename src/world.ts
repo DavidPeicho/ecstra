@@ -1,5 +1,5 @@
 import { Entity } from './entity.js';
-import { ComponentManager } from './internals/component-manager.js';
+import { ComponentManager, ComponentRegisterOptions } from './internals/component-manager.js';
 import { QueryManager } from './internals/query-manager.js';
 import { SystemManager } from './internals/system-manager.js';
 import { System } from './system.js';
@@ -12,6 +12,7 @@ import {
   ComponentOf,
   Constructor,
   EntityOf,
+  EntityClass,
   Nullable,
   Option,
   PropertiesOf,
@@ -82,24 +83,32 @@ export class World<E extends Entity = Entity> {
   public constructor(options: Partial<WorldOptions<E>> = {}) {
     const {
       maxComponentType = 256,
-      useManualPooling = true,
-      EntityClass = Entity
+      useManualPooling = false,
+      EntityClass = Entity,
+      EntityPoolClass = DefaultPool,
+      ComponentPoolClass = DefaultPool,
+      systems = [],
+      components = []
     } = options;
     this._queries = new QueryManager(this);
     this._systems = new SystemManager(this);
     this._components = new ComponentManager(this, {
       maxComponentType,
-      useManualPooling
+      ComponentPoolClass: useManualPooling ? null : ComponentPoolClass
     });
     this._EntityClass = EntityClass as EntityClass<EntityOf<this>>;
-    this._entityPool = !useManualPooling
-      ? new DefaultPool(this._EntityClass)
-      : null;
-  }
 
-  public registerComponent(Class: ComponentClass): this {
-    this._components.registerComponent(Class);
-    return this;
+    this._entityPool = null;
+    if (useManualPooling) {
+      this._entityPool = new EntityPoolClass(this._EntityClass) as EntityPool<this>;
+    }
+
+    for (const component of components) {
+      this.registerComponent(component);
+    }
+    for (const system of systems) {
+      this.register(system as SystemClass<System<this>>);
+    }
   }
 
   /**
@@ -139,6 +148,32 @@ export class World<E extends Entity = Entity> {
   }
 
   /**
+   * Registers a component type in this world instance.
+   *
+   * ## Notes
+   *
+   * It's not mandatory to pre-register a component this way. However, it's
+   * always better to pre-allocate and initialize everything you can on startup
+   * for optimal performance at runtime.
+   *
+   * Registering a component manually will avoid registration on first usage
+   * and can thus optimize your runtime performance.
+   *
+   * @param Class - Class of the component to register
+   * @param opts - Set of options to affect the component registration, such
+   *   as the pool used
+   *
+   * @return This instance
+   */
+  public registerComponent<T extends Component>(
+    Class: ComponentClass<T>,
+    opts?: ComponentRegisterOptions
+  ): this {
+    this._components.registerComponentManual(Class, opts);
+    return this;
+  }
+
+  /**
    * Creates a new entity
    *
    * @param name - Optional name of the entity. The name isn't a read-only
@@ -150,12 +185,12 @@ export class World<E extends Entity = Entity> {
     let entity;
     if (this._entityPool) {
       entity = this._entityPool.acquire();
-      entity['_world'] = this;
       entity._pooled = true;
       entity.name = name ?? null;
     } else {
-      entity = new this._EntityClass(this, name);
+      entity = new this._EntityClass(name);
     }
+    entity['_world'] = this;
     this._components.initEntity(entity);
     return entity;
   }
@@ -351,19 +386,91 @@ export class World<E extends Entity = Entity> {
   }
 }
 
+/**
+ * Options for the [[World]] constructor
+ */
 export interface WorldOptions<E extends Entity> {
+  /** Default list of systems to register. */
+
   systems: SystemClass[];
+
+  /** Default list of components to register. */
   components: ComponentClass[];
+
+  /**
+   * Number of components that will be registered.
+   *
+   * This is used for performance reasons. It's preferable to give the exact
+   * amount of component type you are going to use, but it's OK to give an
+   * inflated number if you don't fully know in advanced all components that
+   * will be used.
+   *
+   * Default: 256
+   */
   maxComponentType: number;
+
+  /**
+   * If `true`, no pool is created by default for components and entities.
+   *
+   * Default: `false`
+   */
   useManualPooling: boolean;
+
+  /**
+   * Class of entity to instanciate when calling `world.create()`.
+   *
+   * **Note**: if you use your own entity class, please make sure it's
+   * compatible with the default entity pool (if not using a custom pool). Try
+   * to keep the same interface (constructor, methods, etc...)
+   *
+   * Default: [[Entity]]
+   */
   EntityClass: EntityClass<E>;
+
+  /**
+   * Class of the default pool that will be used for components.
+   *
+   * Using you custom default pool allow you to perform fine-tuned logic to
+   * improve pooling performance.
+   *
+   * ## Notes
+   *
+   * The pool will be instanciated by the world using:
+   *
+   * ```js
+   * const pool = new ComponentPoolClass(ComponentType);
+   * ```
+   *
+   * Please ensure that your interface is compatible
+   *
+   * Default: [[DefaultPool]]
+   */
+  ComponentPoolClass: Constructor<ObjectPool<Component>>;
+
+  /**
+   * Class of the default pool that will be used for entities.
+   *
+   * Using you custom default pool allow you to perform fine-tuned logic to
+   * improve pooling performance.
+   *
+   * ## Notes
+   *
+   * The pool will be instanciated by the world using:
+   *
+   * ```js
+   * const pool = new EntityPoolClass(EntityClass);
+   * ```
+   *
+   * Please ensure that your interface is compatible
+   *
+   * Default: [[DefaultPool]]
+   */
+  EntityPoolClass: Constructor<ObjectPool<E>>;
 }
 
 export interface SystemRegisterOptions<WorldType extends World> {
   group?: Constructor<SystemGroup<WorldType>>;
   order?: number;
 }
-
-export type EntityClass<E extends Entity> = Constructor<E>;
 
 type EntityPool<WorldType extends World> = ObjectPool<EntityOf<WorldType>>;

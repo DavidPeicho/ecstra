@@ -23,4 +23,8 @@ export class Archetype<E extends Entity> {
   public get components(): Set<ComponentClass> {
     return this._components;
   }
+
+  public get empty(): boolean {
+    return this.entities.length === 0;
+  }
 }
