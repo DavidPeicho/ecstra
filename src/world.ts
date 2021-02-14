@@ -97,6 +97,11 @@ export class World<E extends Entity = Entity> {
       : null;
   }
 
+  public registerComponent(Class: ComponentClass): this {
+    this._components.registerComponent(Class);
+    return this;
+  }
+
   /**
    * Registers a system in this world instance
    *

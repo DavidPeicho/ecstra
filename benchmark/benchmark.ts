@@ -90,9 +90,13 @@ class BenchmarkGroup {
 export class Benchmark {
 
   private _groups: Map<string, BenchmarkGroup>;
+  private _onSampleStart: (sample: Sample) => void;
+  private _onSampleComplete: (sample: BenchmarkSampleResult) => void;
 
   public constructor() {
     this._groups = new Map<string, BenchmarkGroup>();
+    this._onSampleStart = () => { /* Empty. */ };
+    this._onSampleComplete = () => { /* Empty. */ };
   }
 
   public group(name: string): BenchmarkGroup {
@@ -100,6 +104,16 @@ export class Benchmark {
       this._groups.set(name, new BenchmarkGroup(name));
     }
     return this._groups.get(name)!;
+  }
+
+  public onSampleStart(cb: (sample: Sample) => void): this {
+    this._onSampleStart = cb;
+    return this;
+  }
+
+  public onSampleComplete(cb: (sample: BenchmarkSampleResult) => void): this {
+    this._onSampleComplete = cb;
+    return this;
   }
 
   public run(): BenchmarkGroupResult[] {
@@ -119,7 +133,13 @@ export class Benchmark {
 
     for (const sample of group.samples) {
       const stats = new Stats();
+      const name = sample.name ?? 'unnamed sample';
       const iterations = sample.iterations ?? 10;
+      this._onSampleStart({
+        ...sample,
+        name,
+        iterations
+      });
       for (let i = 0; i < iterations; ++i) {
         let context = {} as Context | null;
         if (sample.setup) {
@@ -134,14 +154,16 @@ export class Benchmark {
         stats.stop();
         context = null;
       }
-      result.samples.push({
-        name: sample.name ?? 'unnamed sample',
+      const sampleResult = {
+        name,
         iterations,
         average: stats.average,
         memoryAverage: stats.memoryAverage,
         min: stats.min,
         max: stats.max
-      });
+      }
+      this._onSampleComplete(sampleResult);
+      result.samples.push(sampleResult);
     }
   }
 
@@ -151,14 +173,14 @@ export interface Context {
   [ key: string ]: any;
 }
 
-interface Sample {
+export interface Sample {
   name?: string;
   iterations?: number;
   setup?: (context: Context) => void;
   code: (context: Context) => void;
 }
 
-interface BenchmarkSampleResult {
+export interface BenchmarkSampleResult {
   name: string;
   iterations: number;
   average: number;

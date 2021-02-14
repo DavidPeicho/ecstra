@@ -25,7 +25,7 @@
     "example": "http-server ./ -c-1 -p 8080 --cors ./example",
     "example:build": "tsc ./example/typescript/**/*.ts --target ES6 --experimentalDecorators && npm run example",
     "example:start": "tsc ./example/typescript/**/*.ts --target ES6 --experimentalDecorators -w && npm run example",
-    "benchmark": "node ./benchmark/index.js",
+    "benchmark": "node --expose-gc --loader ts-node/esm ./benchmark/index.ts",
     "lint": "eslint ./src/**/*.ts",
     "test": "ava",
     "pretty": "prettier ./src/ ./test --write",
