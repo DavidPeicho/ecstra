@@ -27,10 +27,7 @@ export class ComponentManager<WorldType extends World> {
   private _lastIdentifier: number;
 
   public constructor(world: WorldType, options: ComponentManagerOptions) {
-    const {
-      maxComponentType,
-      ComponentPoolClass = null
-    } = options;
+    const { maxComponentType, ComponentPoolClass = null } = options;
     this.maxComponentTypeCount = maxComponentType;
     this._world = world;
     this.archetypes = new Map();
@@ -101,7 +98,10 @@ export class ComponentManager<WorldType extends World> {
     return this.registerComponent(Class).identifier;
   }
 
-  public registerComponentManual(Class: ComponentClass, opts?: ComponentRegisterOptions): void {
+  public registerComponentManual(
+    Class: ComponentClass,
+    opts?: ComponentRegisterOptions
+  ): void {
     if (process.env.NODE_ENV === 'development') {
       if (this._data.has(Class)) {
         const name = Class.Name ?? Class.name;
@@ -190,7 +190,9 @@ export class ComponentManager<WorldType extends World> {
       this.archetypes.set(archetype.hash, archetype);
       this._world._onArchetypeCreated(archetype);
     }
-    const archetype = this.archetypes.get(hash) as Archetype<EntityOf<WorldType>>;
+    const archetype = this.archetypes.get(hash) as Archetype<
+      EntityOf<WorldType>
+    >;
     const entities = archetype.entities;
     entity._indexInArchetype = entities.length;
     entity._archetype = archetype;
@@ -230,7 +232,9 @@ export class ComponentManager<WorldType extends World> {
     const index = this.getIdentifier(Class);
     const entry = added ? '1' : '0';
     const arch = entity.archetype!;
-    return `${arch.hash.substring(0, index)}${entry}${arch.hash.substring(index + 1)}`;
+    return `${arch.hash.substring(0, index)}${entry}${arch.hash.substring(
+      index + 1
+    )}`;
   }
 }
 

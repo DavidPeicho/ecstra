@@ -1,9 +1,9 @@
 import { Context, Benchmark } from './benchmark.js';
 
 import { boolean, number, array, string, ref } from '../src/decorators.js';
-import { Entity } from '../src/entity.js';
 import { ComponentData, TagComponent } from '../src/component.js';
 import { World } from '../src/world.js';
+import { System } from '../src/system.js';
 
 class MyTagComponent extends TagComponent {}
 
@@ -20,17 +20,17 @@ class MyComponentData extends ComponentData {
   myRef!: { foo: string; bar: string } | null;
 }
 
-export default function(benchmark: Benchmark): void {
+export default function (benchmark: Benchmark): void {
   benchmark
     .group('Entity')
     .add({
       name: 'create / destroy entities without pool',
       iterations: 5,
-      setup: function(ctx: Context) {
-        ctx.world = new World();
-        ctx.entities = new Array(100000);
+      setup: function (ctx: Context) {
+        ctx.world = new World({ useManualPooling: true });
+        ctx.entities = new Array(100000).fill(null);
       },
-      code: function(ctx: Context) {
+      code: function (ctx: Context) {
         const len = ctx.entities.length;
         for (let i = 0; i < Math.floor(len / 3); ++i) {
           ctx.entities[i] = ctx.world.create();
@@ -40,7 +40,7 @@ export default function(benchmark: Benchmark): void {
           ctx.entities[i] = null;
         }
         for (let i = 0; i < len; ++i) {
-          if (ctx.entities[i] !== null) {
+          if (ctx.entities[i] === null) {
             ctx.entities[i] = ctx.world.create();
           }
         }
@@ -49,13 +49,13 @@ export default function(benchmark: Benchmark): void {
     .add({
       name: 'create / destroy entities with pool',
       iterations: 5,
-      setup: function(ctx: Context) {
+      setup: function (ctx: Context) {
         ctx.world = new World({
           useManualPooling: false
         });
         ctx.entities = new Array(100000);
       },
-      code: function(ctx: Context) {
+      code: function (ctx: Context) {
         const len = ctx.entities.length;
         for (let i = 0; i < Math.floor(len / 3); ++i) {
           ctx.entities[i] = ctx.world.create();
@@ -65,51 +65,109 @@ export default function(benchmark: Benchmark): void {
           ctx.entities[i] = null;
         }
         for (let i = 0; i < len; ++i) {
-          if (ctx.entities[i] !== null) {
+          if (ctx.entities[i] === null) {
             ctx.entities[i] = ctx.world.create();
           }
         }
       }
     })
     .add({
-      name: 'add tag component to entity',
-      iterations: 1,
-      setup: function(ctx: Context) {
-        ctx.world = new World();
+      name: 'add tag component to entity - no pooling',
+      iterations: 100,
+      setup: function (ctx: Context) {
+        ctx.world = new World({ useManualPooling: true });
+        ctx.world.registerComponent(MyTagComponent);
         ctx.entity = ctx.world.create();
       },
-      code: function(ctx: Context) {
+      code: function (ctx: Context) {
         ctx.entity.add(MyTagComponent);
       }
     })
     .add({
-      name: 'add tag component to entity - existing archetype',
-      iterations: 1,
-      setup: function(ctx: Context) {
-        ctx.world = new World();
-        ctx.world.create().add(MyTagComponent);
+      name: 'add tag component to entity - pooling',
+      iterations: 100,
+      setup: function (ctx: Context) {
+        ctx.world = new World({ useManualPooling: false });
+        ctx.world.registerComponent(MyTagComponent);
         ctx.entity = ctx.world.create();
-
       },
-      code: function(ctx: Context) {
+      code: function (ctx: Context) {
         ctx.entity.add(MyTagComponent);
       }
     })
     .add({
-      name: 'add data component to entity - creates archetype',
-      iterations: 1,
-      setup: function(ctx: Context) {
-        ctx.world = new World();
+      name: 'remove tag component synchronously from entity',
+      iterations: 100,
+      setup: function (ctx: Context) {
+        ctx.world = new World({ useManualPooling: true });
+        ctx.world.registerComponent(MyTagComponent);
+        ctx.entity = ctx.world.create();
+        ctx.entity.add(MyTagComponent);
+      },
+      code: function (ctx: Context) {
+        ctx.entity.remove(MyTagComponent);
+      }
+    })
+    .add({
+      name: 'add data component to entity - no pooling',
+      iterations: 100,
+      setup: function (ctx: Context) {
+        ctx.world = new World({ useManualPooling: true });
+        ctx.world.registerComponent(MyComponentData);
         ctx.entity = ctx.world.create();
       },
-      code: function(ctx: Context) {
-        (ctx.entity as Entity).add(MyComponentData, {
-          myRef: null,
-          myNumber: 1,
+      code: function (ctx: Context) {
+        ctx.entity.add(MyComponentData, {
           myBoolean: false,
+          myNumber: 1,
+          myString: 'Oh, Snap!',
           myArray: [],
-          myString: 'Oh, Snap!'
+          myRef: null
+        });
+      }
+    })
+    .add({
+      name: 'add data component to entity - pooling',
+      iterations: 100,
+      setup: function (ctx: Context) {
+        ctx.world = new World({ useManualPooling: false });
+        ctx.world.registerComponent(MyComponentData);
+        ctx.entity = ctx.world.create();
+      },
+      code: function (ctx: Context) {
+        ctx.entity.add(MyComponentData, {
+          myBoolean: false,
+          myNumber: 1,
+          myString: 'Oh, Snap!',
+          myArray: [],
+          myRef: null
         });
       }
     });
+
+  (function () {
+    class MySystem extends System {
+      execute() {
+        /* Emnpty. */
+      }
+    }
+    MySystem.Queries = {};
+    for (let i = 0; i < 100000; ++i) {
+      MySystem.Queries[`query_${i}`] = [MyTagComponent];
+    }
+
+    benchmark.group('Entity').add({
+      name: 'add tag component to entity - several queries',
+      iterations: 100,
+      setup: function (ctx: Context) {
+        ctx.world = new World({ useManualPooling: true });
+        ctx.world.register(MySystem);
+        ctx.world.registerComponent(MyTagComponent);
+        ctx.entity = ctx.world.create();
+      },
+      code: function (ctx: Context) {
+        ctx.entity.add(MyTagComponent);
+      }
+    });
+  })();
 }

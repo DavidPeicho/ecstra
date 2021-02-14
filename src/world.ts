@@ -1,5 +1,8 @@
 import { Entity } from './entity.js';
-import { ComponentManager, ComponentRegisterOptions } from './internals/component-manager.js';
+import {
+  ComponentManager,
+  ComponentRegisterOptions
+} from './internals/component-manager.js';
 import { QueryManager } from './internals/query-manager.js';
 import { SystemManager } from './internals/system-manager.js';
 import { System } from './system.js';
@@ -100,7 +103,9 @@ export class World<E extends Entity = Entity> {
 
     this._entityPool = null;
     if (useManualPooling) {
-      this._entityPool = new EntityPoolClass(this._EntityClass) as EntityPool<this>;
+      this._entityPool = new EntityPoolClass(
+        this._EntityClass
+      ) as EntityPool<this>;
     }
 
     for (const component of components) {

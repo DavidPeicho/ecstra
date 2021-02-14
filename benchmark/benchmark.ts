@@ -1,7 +1,6 @@
 import { performance } from 'perf_hooks';
 
 class Stats {
-
   private _count: number;
   private _memCount: number;
   private _elapsed: number;
@@ -45,7 +44,6 @@ class Stats {
 
   public get average(): number {
     return this._elapsed / this._count;
-
   }
 
   public get memoryAverage(): number {
@@ -59,11 +57,9 @@ class Stats {
   public get max(): number {
     return this._max;
   }
-
 }
 
 class BenchmarkGroup {
-
   private _name: string;
   private _samples: Sample[];
 
@@ -84,19 +80,21 @@ class BenchmarkGroup {
   public get samples(): Sample[] {
     return this._samples;
   }
-
 }
 
 export class Benchmark {
-
   private _groups: Map<string, BenchmarkGroup>;
   private _onSampleStart: (sample: Sample) => void;
   private _onSampleComplete: (sample: BenchmarkSampleResult) => void;
 
   public constructor() {
     this._groups = new Map<string, BenchmarkGroup>();
-    this._onSampleStart = () => { /* Empty. */ };
-    this._onSampleComplete = () => { /* Empty. */ };
+    this._onSampleStart = () => {
+      /* Empty. */
+    };
+    this._onSampleComplete = () => {
+      /* Empty. */
+    };
   }
 
   public group(name: string): BenchmarkGroup {
@@ -119,12 +117,15 @@ export class Benchmark {
   public run(): BenchmarkGroupResult[] {
     const benchmarks = [] as BenchmarkGroupResult[];
     this._groups.forEach((group: BenchmarkGroup) => {
-      this._runGroup(benchmarks, group)
+      this._runGroup(benchmarks, group);
     });
     return benchmarks;
   }
 
-  private _runGroup(results: BenchmarkGroupResult[], group: BenchmarkGroup): void {
+  private _runGroup(
+    results: BenchmarkGroupResult[],
+    group: BenchmarkGroup
+  ): void {
     const result = {
       name: group.name,
       samples: []
@@ -161,16 +162,15 @@ export class Benchmark {
         memoryAverage: stats.memoryAverage,
         min: stats.min,
         max: stats.max
-      }
+      };
       this._onSampleComplete(sampleResult);
       result.samples.push(sampleResult);
     }
   }
-
 }
 
 export interface Context {
-  [ key: string ]: any;
+  [key: string]: any;
 }
 
 export interface Sample {
@@ -189,7 +189,7 @@ export interface BenchmarkSampleResult {
   max: number;
 }
 
-interface BenchmarkGroupResult {
+export interface BenchmarkGroupResult {
   name: string;
   samples: BenchmarkSampleResult[];
 }
