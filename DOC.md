@@ -323,6 +323,82 @@ class TestComponentDecorator extends ComponentData {
 }
 ```
 
+# Pooling
+
+The first version of Ecstra had pooling disabled by default. However, when I
+started to benchmark the library I quickly realized that pooling was a must have
+by default.
+
+By default, every component type and entities have associated pools. If you have
+50 different components, Ecstra will then allocates 50 component pools and one
+extra pool for entities. This may seem like a waste of memory, but will bring
+by ~50% the cost of creating components and entities.
+
+## Custom Pool
+
+You can derive your own pool implementation by creating a class
+matching this interface:
+
+```js
+export interface ObjectPool<T> {
+  destroy?: () => void;
+  acquire(): T;
+  release(value: T): void;
+  expand(count: number): void;
+}
+```
+
+You can then use your own default pool for entities / components:
+
+```js
+const world = new World({
+  ComponentPoolClass: MySuperFastPoolClass,
+  EntityPoolClass: MySuperFastPoolClass
+});
+```
+
+Alternatively, you can change the pool on a per-component basis using:
+
+```js
+world.registerComponent(MyComponentClass, { pool: MySuperFastPoolClass });
+```
+
+or
+
+```js
+world.setComponentPool(MyComponentClass, MySuperFastPoolClass);
+```
+
+## Disable Automatic Pooling
+
+If you don't want any default pooling, you can create your `World` using:
+
+```js
+const world = new World({
+  useManualPooling: true
+})
+```
+
+When the automatic pooling is disabled, `ComponentPoolClass` and
+`EntityPoolClass` are unused. However, manually assigning pool using
+`world.setComponentPool` is still a possibility.
+
+# Perfomance
+
+## Pooling
+
+Pooling can significantly improve performance, especially if you often add or
+remove components. The default pooling scheme should be enough in most cases,
+but creating custom pool systems can also help.
+
+## Reduce Componet Addition / Deletion
+
+Even if pooling is used, adding / deleting components always comes at a cost.
+The components list is hashed into a string, used to find the new archetype
+of the entity.
+
+You can probably enabled / disable some components by using a custom field.
+
 # Advanced
 
 ## Custom Properties
@@ -350,55 +426,6 @@ You can also create a function that setup your property:
 function MyProp(options) {
   // Process the `options` argument and create the property.
   return new MyProperty(...);
-}
-```
-
-## Pooling
-
-When creating and destroying a lot of entities and components, pooling
-can help reduce garbage collection and improve general performance.
-
-> Note By default, worlds are created in _"manual"_ pooling mode, i.e., no pooling is performed.
-
-### Automatic Pooling
-
-It's possible for you to activate pooling with little effort:
-
-```js
-const world = new World({ useManualPooling: false });
-```
-
-Pooling will be enabled for **every** components, as well as for
-entities.
-
-It's possible for you to opt out pooling for the desired components:
-
-```js
-// The second argument represents the pool. Setting it to `null`
-// disable pooling.
-world.setComponentPool(MyComponentClass, null);
-```
-
-### Manual Pooling
-
-Instead of using automatic pooling, it's possible to manage pools
-one by one. You can assign a pool to a component type:
-
-```js
-import { DefaultPool } from 'ecstra';
-
-world.setComponentPool(MyComponentClass, new DefaultPool());
-```
-
-You can also derive your own pool implementation by creating a class
-matching this interface:
-
-```js
-export interface ObjectPool<T> {
-  destroy?: () => void;
-  acquire(): T;
-  release(value: T): void;
-  expand(count: number): void;
 }
 ```
 
