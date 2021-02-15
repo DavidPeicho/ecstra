@@ -1,7 +1,12 @@
 #!/usr/bin/env node
 
+import chalk from 'chalk';
 import { promises } from 'fs';
 import { BenchmarkGroupResult, BenchmarkSampleResult } from './benchmark';
+
+function log(msg: string, spacing = 0): void {
+  console.log(`${' '.repeat(spacing)}${msg}`);
+}
 
 export function compare(
   sourceList: BenchmarkGroupResult[],
@@ -20,7 +25,10 @@ export function compare(
     }
   }
 
+  let success = true;
+
   for (const group of sourceList) {
+    log(chalk.bold(group.name));
     for (const srcSample of group.samples) {
       const actualSample = actual.get(srcSample.name)!;
       let speedDelta = 0;
@@ -34,18 +42,23 @@ export function compare(
       ) {
         memDelta = actualSample.memoryAverage - srcSample.memoryAverage;
       }
-      console.log(`⚙️\t'${actualSample.name}'`);
+      const passed = speedDelta <= 0.0001 && memDelta <= 0.0001;
+      if (passed) {
+        log(`✅ ${chalk.gray(actualSample.name)}`, 2);
+      } else {
+        log(`❌ ${chalk.red(actualSample.name)}`, 2);
+      }
       if (speedDelta > 0) {
-        console.log(`\t\t📉 ${speedDelta.toFixed(4)}ms slower`);
+        log(`${chalk.bold(speedDelta.toFixed(4))}ms slower`, 6);
       }
       if (memDelta > 0) {
-        console.log(`\t\t🪶 ${memDelta.toFixed(2)}bytes heavier`);
+        log(`${chalk.bold(memDelta.toFixed(2))}ms slower`, 6);
       }
-      console.log();
+      success = success && passed;
     }
   }
 
-  return true;
+  return success;
 }
 
 function errorAndExit(msg: string): void {
@@ -81,5 +94,9 @@ Promise.all([
 ]).then((files: string[]) => {
   const source = JSON.parse(files[0]) as { benchmarks: BenchmarkGroupResult[] };
   const actual = JSON.parse(files[1]) as { benchmarks: BenchmarkGroupResult[] };
-  compare(source.benchmarks, actual.benchmarks);
+  const success = compare(source.benchmarks, actual.benchmarks);
+
+  if (!success) {
+    process.exit(1);
+  }
 });

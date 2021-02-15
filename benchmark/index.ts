@@ -6,7 +6,22 @@ import { Benchmark, BenchmarkSampleResult, Sample } from './benchmark.js';
 import registerEntityBench from './entity.js';
 
 /**
- * CLI argument parsing
+ * CLI argument parsing.
+ */
+
+const args = {
+  output: `benchmark-${new Date().toLocaleDateString().replace(/\//g, '_')}.json`
+};
+
+const outputIndex = process.argv.findIndex(
+  (v: string) => v === '--output' || v === '-o'
+);
+if (outputIndex + 1 < process.argv.length) {
+  args.output = process.argv[outputIndex + 1];
+}
+
+/**
+ * Main.
  */
 
 const benchmark = new Benchmark();
@@ -20,15 +35,5 @@ benchmark.onSampleComplete((sample: BenchmarkSampleResult) => {
 registerEntityBench(benchmark);
 
 const benchmarks = benchmark.run();
-
-const date = new Date().toLocaleDateString().replace(/\//g, '_');
-writeFileSync(
-  `benchmark-${date}.json`,
-  JSON.stringify(
-    {
-      benchmarks
-    },
-    null,
-    4
-  )
-);
+const benchmarksJSON = JSON.stringify({ benchmarks }, null, 4);
+writeFileSync(args.output, benchmarksJSON);
