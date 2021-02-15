@@ -68,12 +68,108 @@ The library is distributed as an ES6 module, but also comes with two UMD builds:
 
 ## Usage Example
 
+### TypeScript
+
+```ts
+import {
+  ComponentData,
+  TagComponent,
+  System,
+  World,
+  number,
+  queries,
+  ref
+} from 'ecstra';
+
+/**
+ * Components definition.
+ */
+
+class Position2D extends ComponentData {
+  @number()
+  x!: number;
+  @number()
+  y!: number;
+}
+
+class FollowTarget extends ComponentData {
+  @ref()
+  target!: number;
+  @number(1.0)
+  speed!: number;
+}
+
+class PlayerTag extends TagComponent {}
+class ZombieTag extends TagComponent {}
+
+/**
+ * Systems definition.
+ */
+
+@queries({
+  // Select entities with all three components `ZombieTag`, `FollowTarget`, and
+  // `Position2D`.
+  zombies: [ZombieTag, FollowTarget, Position2D]
+})
+class ZombieFollowSystem extends System {
+
+  execute(delta: number): void {
+    this.queries.zombies.execute((entity) => {
+      const { speed, target } = entity.read(FollowTarget);
+      const position = entity.write(Position2D);
+      const deltaX = target.x - position.x;
+      const deltaY = target.y - position.y;
+      const len = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+      if (len >= 0.00001) {
+        position.x += speed * delta * (deltaX / len);
+        position.y += speed * delta * (deltaY / len);
+      }
+    });
+  }
+
+}
+
+const world = new World().register(ZombieFollowSystem);
+
+// Creates a player entity.
+const playerEntity = world.create().add(PlayerTag).add(Position2D);
+const playerPosition = playerEntity.read();
+
+// Creates 100 zombies at random positions with a `FollowTarget` component that
+// will make them follow our player.
+for (let i = 0; i < 100; ++i) {
+  world.create()
+    .add(ZombieTag)
+    .add(Position2D, {
+      x: Math.floor(Math.random() * 50.0) - 100.0,
+      y: Math.floor(Math.random() * 50.0) - 100.0
+    })
+    .add(FollowTarget, { target: playerPosition })
+}
+
+// Runs the animation loop and execute all systems every frame.
+
+let lastTime = 0.0;
+function loop() {
+  const currTime = performance.now();
+  const deltaTime = currTime - lastTime;
+  lastTime = currTime;
+  world.execute(deltaTime);
+  requestAnimationFrame(loop);
+}
+lastTime = performance.now();
+loop();
+```
+
+### JavaScript
+
 ```js
 import {
   ComponentData,
   TagComponent,
   NumberProp,
   RefProp,
+  System,
   World
 } from 'ecstra';
 
@@ -123,7 +219,7 @@ ZombieFollowSystem.Queries = {
   zombies: [ZombieTag, FollowTarget, Position2D]
 }
 
-const world = new World();
+const world = new World().register(ZombieFollowSystem);
 
 // Creates a player entity.
 const playerEntity = world.create().add(PlayerTag).add(Position2D);
