@@ -4,7 +4,11 @@ import chalk from 'chalk';
 
 import { promises as fsp } from 'fs';
 
-import { Benchmark, BenchmarkGroupResult, BenchmarkSampleResult } from './benchmark.js';
+import {
+  Benchmark,
+  BenchmarkGroupResult,
+  BenchmarkSampleResult
+} from './benchmark.js';
 import { compare } from './comparator.js';
 import registerEntityBench from './entity.bench.js';
 
@@ -18,12 +22,12 @@ const args = {
   compare: null as string | null
 };
 
-const outputIndex = argv.findIndex(v => v === '--output' || v === '-o');
+const outputIndex = argv.findIndex((v) => v === '--output' || v === '-o');
 if (outputIndex >= 0 && outputIndex + 1 < process.argv.length) {
   args.output = process.argv[outputIndex + 1];
 }
-const compareIndex = argv.findIndex(v => v === '--compare' || v === '-c');
-if (compareIndex>= 0 && compareIndex + 1 < process.argv.length) {
+const compareIndex = argv.findIndex((v) => v === '--compare' || v === '-c');
+if (compareIndex >= 0 && compareIndex + 1 < process.argv.length) {
   args.compare = process.argv[compareIndex + 1];
 }
 
@@ -49,7 +53,7 @@ benchmark.onSampleComplete((sample: BenchmarkSampleResult) => {
 registerEntityBench(benchmark);
 
 console.log();
-console.log(chalk.white.bold(`--- starting benchmark ---`))
+console.log(chalk.white.bold(`--- starting benchmark ---`));
 console.log();
 
 const benchmarks = benchmark.run();
@@ -57,7 +61,8 @@ const promises = [];
 
 if (args.output !== null) {
   const benchmarksJSON = JSON.stringify({ benchmarks }, null, 4);
-  const p = fsp.writeFile(args.output, benchmarksJSON)
+  const p = fsp
+    .writeFile(args.output, benchmarksJSON)
     .then(() => 0)
     .catch((e) => {
       console.error(e);
@@ -68,7 +73,7 @@ if (args.output !== null) {
 
 if (args.compare !== null) {
   console.log();
-  console.log(chalk.white.bold(`--- comparing to '${args.compare}' ---`))
+  console.log(chalk.white.bold(`--- comparing to '${args.compare}' ---`));
   console.log();
   const p = fsp.readFile(args.compare as string, 'utf8').then((v: string) => {
     const source = JSON.parse(v) as { benchmarks: BenchmarkGroupResult[] };

@@ -73,3 +73,20 @@ import { World } from 'ecstra';
 // You can use Ecstra as if it was a npm-installed dependency
 const world = new World();
 ```
+
+## Benchmark
+
+Before being merged, the code is passed into the benchmark test suite to ensure
+no performance has been lost.
+
+To run the benchmark locally, you can use:
+
+```sh
+npm run benchmark -- -o [PATH_TO_OUTPUT_FILE]
+```
+
+If you wish to compare the benchmark with a previous result, you can use:
+
+```sh
+npm run benchmark -- -c [PATH_TO_FILE_TO_COMPARE]
+```

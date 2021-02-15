@@ -4,7 +4,6 @@ import { performance } from 'perf_hooks';
  * Objects gathering statis on start / stop
  */
 class Stats {
-
   /**
    * Number of iterations performed, used to average values
    *
@@ -114,7 +113,6 @@ class BenchmarkGroup {
  * Create and run benchmarks
  */
 export class Benchmark {
-
   /**
    * List of groups created in this benchmark
    *
