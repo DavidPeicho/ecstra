@@ -1,4 +1,5 @@
 import { Component, ComponentData, Properties } from './component';
+import { Entity } from './entity';
 import { ObjectPool } from './pool';
 import { Property } from './property';
 import { StaticQueries, System } from './system';
@@ -19,6 +20,8 @@ export type PropertiesOf<C extends Component> = Partial<
 >;
 
 export type Constructor<T> = new (...args: any[]) => T;
+
+export type EntityClass<T extends Entity> = new (name?: string) => T;
 
 /** Class type for a SystemGroup derived type */
 export type SystemGroupClass<

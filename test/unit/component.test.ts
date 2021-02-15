@@ -34,7 +34,6 @@ test('Component > ComponentData > Properties created', (t) => {
   entity = world.create();
   entity.add(TestComponentDecorator);
   const compDecorator = entity.read(TestComponentDecorator)!;
-  console.log(compDecorator);
   t.true(compDecorator.myBoolean !== undefined);
 });
 

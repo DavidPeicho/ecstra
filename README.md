@@ -46,6 +46,7 @@ The library will prioritize stability improvements over feature development.
 * TypeScript Decorators
   * For component properties
   * For system ordering and configuration
+* No Dependency
 
 ## Install
 
