@@ -25,10 +25,9 @@ export default function (benchmark: Benchmark): void {
     .group('Entity')
     .add({
       name: 'create / destroy entities without pool',
-      iterations: 5,
       setup: function (ctx: Context) {
         ctx.world = new World({ useManualPooling: true });
-        ctx.entities = new Array(100000).fill(null);
+        ctx.entities = new Array(100).fill(null);
       },
       code: function (ctx: Context) {
         const len = ctx.entities.length;
@@ -48,12 +47,11 @@ export default function (benchmark: Benchmark): void {
     })
     .add({
       name: 'create / destroy entities with pool',
-      iterations: 5,
       setup: function (ctx: Context) {
         ctx.world = new World({
           useManualPooling: false
         });
-        ctx.entities = new Array(100000);
+        ctx.entities = new Array(100);
       },
       code: function (ctx: Context) {
         const len = ctx.entities.length;
@@ -73,7 +71,6 @@ export default function (benchmark: Benchmark): void {
     })
     .add({
       name: 'add tag component to entity - no pooling',
-      iterations: 100,
       setup: function (ctx: Context) {
         ctx.world = new World({ useManualPooling: true });
         ctx.world.registerComponent(MyTagComponent);
@@ -85,7 +82,7 @@ export default function (benchmark: Benchmark): void {
     })
     .add({
       name: 'add tag component to entity - pooling',
-      iterations: 100,
+      iterations: 75,
       setup: function (ctx: Context) {
         ctx.world = new World({ useManualPooling: false });
         ctx.world.registerComponent(MyTagComponent);
@@ -97,7 +94,7 @@ export default function (benchmark: Benchmark): void {
     })
     .add({
       name: 'remove tag component synchronously from entity',
-      iterations: 100,
+      iterations: 75,
       setup: function (ctx: Context) {
         ctx.world = new World({ useManualPooling: true });
         ctx.world.registerComponent(MyTagComponent);
@@ -110,7 +107,7 @@ export default function (benchmark: Benchmark): void {
     })
     .add({
       name: 'add data component to entity - no pooling',
-      iterations: 100,
+      iterations: 75,
       setup: function (ctx: Context) {
         ctx.world = new World({ useManualPooling: true });
         ctx.world.registerComponent(MyComponentData);
@@ -128,7 +125,7 @@ export default function (benchmark: Benchmark): void {
     })
     .add({
       name: 'add data component to entity - pooling',
-      iterations: 100,
+      iterations: 75,
       setup: function (ctx: Context) {
         ctx.world = new World({ useManualPooling: false });
         ctx.world.registerComponent(MyComponentData);
@@ -158,7 +155,6 @@ export default function (benchmark: Benchmark): void {
 
     benchmark.group('Entity').add({
       name: 'add tag component to entity - several queries',
-      iterations: 100,
       setup: function (ctx: Context) {
         ctx.world = new World({ useManualPooling: true });
         ctx.world.register(MySystem);

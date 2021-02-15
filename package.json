@@ -26,7 +26,6 @@
     "example:build": "tsc ./example/typescript/**/*.ts --target ES6 --experimentalDecorators && npm run example",
     "example:start": "tsc ./example/typescript/**/*.ts --target ES6 --experimentalDecorators -w && npm run example",
     "benchmark": "node --expose-gc --loader ts-node/esm ./benchmark/index.ts",
-    "benchmark:compare": "node --loader ts-node/esm ./benchmark/cli-comparator.ts",
     "lint": "eslint ./src/**/*.ts",
     "test": "ava",
     "pretty": "prettier ./src/ ./test ./benchmark --write",

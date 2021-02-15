@@ -1,0 +1,57 @@
+{
+    "benchmarks": [
+        {
+            "name": "Entity",
+            "samples": [
+                {
+                    "name": "create / destroy entities without pool",
+                    "iterations": 25,
+                    "average": 0.38087823867797854,
+                    "memoryAverage": 283723.52
+                },
+                {
+                    "name": "create / destroy entities with pool",
+                    "iterations": 25,
+                    "average": 0.20508251428604127,
+                    "memoryAverage": 112702.08
+                },
+                {
+                    "name": "add tag component to entity - no pooling",
+                    "iterations": 25,
+                    "average": 0.13757079362869262,
+                    "memoryAverage": 148817.6
+                },
+                {
+                    "name": "add tag component to entity - pooling",
+                    "iterations": 75,
+                    "average": 0.08282259782155355,
+                    "memoryAverage": 159372.58666666667
+                },
+                {
+                    "name": "remove tag component synchronously from entity",
+                    "iterations": 75,
+                    "average": 0.08911222298940023,
+                    "memoryAverage": 142466.56
+                },
+                {
+                    "name": "add data component to entity - no pooling",
+                    "iterations": 75,
+                    "average": 0.1485378122329712,
+                    "memoryAverage": 58722.346666666665
+                },
+                {
+                    "name": "add data component to entity - pooling",
+                    "iterations": 75,
+                    "average": 0.09143120686213176,
+                    "memoryAverage": 127617.81333333334
+                },
+                {
+                    "name": "add tag component to entity - several queries",
+                    "iterations": 25,
+                    "average": 0.15171464204788207,
+                    "memoryAverage": 8212.16
+                }
+            ]
+        }
+    ]
+}

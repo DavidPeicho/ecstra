@@ -1,12 +1,7 @@
 #!/usr/bin/env node
 
 import chalk from 'chalk';
-import { promises } from 'fs';
 import { BenchmarkGroupResult, BenchmarkSampleResult } from './benchmark';
-
-function log(msg: string, spacing = 0): void {
-  console.log(`${' '.repeat(spacing)}${msg}`);
-}
 
 export function compare(
   sourceList: BenchmarkGroupResult[],
@@ -29,6 +24,7 @@ export function compare(
 
   for (const group of sourceList) {
     log(chalk.bold(group.name));
+    console.log();
     for (const srcSample of group.samples) {
       const actualSample = actual.get(srcSample.name)!;
       let speedDelta = 0;
@@ -61,42 +57,11 @@ export function compare(
   return success;
 }
 
-function errorAndExit(msg: string): void {
-  console.error(msg);
-  process.exit(1);
+function log(msg: string, spacing = 0): void {
+  console.log(`${' '.repeat(spacing)}${msg}`);
 }
 
 interface ComparatorOptions {
   memoryTolerance: number;
   speedTolerance: number;
 }
-
-/**
- * CLI argument parsing
- */
-
-const sourceIndex = process.argv.findIndex(
-  (v: string) => v === '--source' || v === '-s'
-);
-if (sourceIndex + 1 >= process.argv.length) {
-  errorAndExit('source not provided');
-}
-const actualIndex = process.argv.findIndex(
-  (v: string) => v === '--actual' || v === '-a'
-);
-if (actualIndex + 1 >= process.argv.length) {
-  errorAndExit('actual not provided');
-}
-
-Promise.all([
-  promises.readFile(process.argv[sourceIndex + 1], 'utf8'),
-  promises.readFile(process.argv[actualIndex + 1], 'utf8')
-]).then((files: string[]) => {
-  const source = JSON.parse(files[0]) as { benchmarks: BenchmarkGroupResult[] };
-  const actual = JSON.parse(files[1]) as { benchmarks: BenchmarkGroupResult[] };
-  const success = compare(source.benchmarks, actual.benchmarks);
-
-  if (!success) {
-    process.exit(1);
-  }
-});

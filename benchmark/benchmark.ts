@@ -1,15 +1,52 @@
 import { performance } from 'perf_hooks';
 
+/**
+ * Objects gathering statis on start / stop
+ */
 class Stats {
-  private _count: number;
-  private _memCount: number;
-  private _elapsed: number;
-  private _min: number;
-  private _max: number;
-  private _lastTimeStamp: number;
-  private _lastMemory: number;
 
+  /**
+   * Number of iterations performed, used to average values
+   *
+   * @hidden
+   */
+  private _count: number;
+
+  /**
+   * Number of iterations performed where memory was summed, used to average
+   * values
+   *
+   * @hidden
+   */
+  private _memCount: number;
+
+  /**
+   * Summation of the time spent by each iteration, in ms
+   *
+   * @hidden
+   */
+  private _elapsed: number;
+
+  /**
+   * Summation of the memory used by each iteration, in bytes
+   *
+   * @hidden
+   */
   private _memory: number;
+
+  /**
+   * Start time value, stored on the last call to [[Stats.start]]
+   *
+   * @hidden
+   */
+  private _lastTimeStamp: number;
+
+  /**
+   * Start memory value, stored on the last call to [[Stats.start]]
+   *
+   * @hidden
+   */
+  private _lastMemory: number;
 
   public constructor() {
     this._count = 0;
@@ -18,8 +55,6 @@ class Stats {
     this._memory = 0.0;
     this._lastTimeStamp = 0.0;
     this._lastMemory = 0.0;
-    this._min = Number.POSITIVE_INFINITY;
-    this._max = Number.NEGATIVE_INFINITY;
   }
 
   public start(): void {
@@ -32,10 +67,11 @@ class Stats {
     const memory = process.memoryUsage().heapUsed - this._lastMemory;
 
     this._elapsed += time;
-    this._min = Math.min(this._min, time);
-    this._max = Math.max(this._max, time);
     ++this._count;
 
+    // Unfortunately, the garbage collection can automatically occurs before
+    // the sample is done. In this case, we simply ignore this iteration memory
+    // footprint.
     if (memory >= 0) {
       this._memory += memory;
       ++this._memCount;
@@ -48,14 +84,6 @@ class Stats {
 
   public get memoryAverage(): number {
     return this._memory / this._memCount;
-  }
-
-  public get min(): number {
-    return this._min;
-  }
-
-  public get max(): number {
-    return this._max;
   }
 }
 
@@ -82,9 +110,30 @@ class BenchmarkGroup {
   }
 }
 
+/**
+ * Create and run benchmarks
+ */
 export class Benchmark {
+
+  /**
+   * List of groups created in this benchmark
+   *
+   * @hidden
+   */
   private _groups: Map<string, BenchmarkGroup>;
+
+  /**
+   * Called triggered when a sample is starting
+   *
+   * @hidden
+   */
   private _onSampleStart: (sample: Sample) => void;
+
+  /**
+   * Called triggered after a sample is completed
+   *
+   * @hidden
+   */
   private _onSampleComplete: (sample: BenchmarkSampleResult) => void;
 
   public constructor() {
@@ -135,12 +184,8 @@ export class Benchmark {
     for (const sample of group.samples) {
       const stats = new Stats();
       const name = sample.name ?? 'unnamed sample';
-      const iterations = sample.iterations ?? 10;
-      this._onSampleStart({
-        ...sample,
-        name,
-        iterations
-      });
+      const iterations = sample.iterations ?? 25;
+      this._onSampleStart({ ...sample, name, iterations });
       for (let i = 0; i < iterations; ++i) {
         let context = {} as Context | null;
         if (sample.setup) {
@@ -159,9 +204,7 @@ export class Benchmark {
         name,
         iterations,
         average: stats.average,
-        memoryAverage: stats.memoryAverage,
-        min: stats.min,
-        max: stats.max
+        memoryAverage: stats.memoryAverage
       };
       this._onSampleComplete(sampleResult);
       result.samples.push(sampleResult);
@@ -185,8 +228,6 @@ export interface BenchmarkSampleResult {
   iterations: number;
   average: number;
   memoryAverage: number;
-  min: number;
-  max: number;
 }
 
 export interface BenchmarkGroupResult {
