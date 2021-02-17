@@ -81,6 +81,9 @@ export class World<E extends Entity = Entity> {
   /** @hidden */
   protected _entityPool: Nullable<EntityPool<this>>;
 
+  /** @hidden */
+  private _version: number;
+
   /** Public API. */
 
   public constructor(options: Partial<WorldOptions<E>> = {}) {
@@ -108,12 +111,15 @@ export class World<E extends Entity = Entity> {
       ) as EntityPool<this>;
     }
 
+    this._version = 0;
+
     for (const component of components) {
       this.registerComponent(component);
     }
     for (const system of systems) {
       this.register(system as SystemClass<System<this>>);
     }
+
   }
 
   /**
@@ -208,6 +214,7 @@ export class World<E extends Entity = Entity> {
    */
   public execute(delta: number): void {
     this._systems.execute(delta);
+    ++this._version;
   }
 
   /**
@@ -306,6 +313,10 @@ export class World<E extends Entity = Entity> {
    */
   public get maxComponentTypeCount(): number {
     return this._components.maxComponentTypeCount;
+  }
+
+  public get version(): number {
+    return this._version;
   }
 
   /** Internal API. */

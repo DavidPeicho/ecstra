@@ -1,4 +1,4 @@
-import { Component, ComponentState, ComponentData } from '../component.js';
+import { Component, ComponentData } from '../component.js';
 import { Entity } from '../entity.js';
 import { ObjectPool } from '../pool.js';
 import { World } from '../world.js';
@@ -79,7 +79,7 @@ export class ComponentManager<WorldType extends World> {
     if ((comp as ComponentData).isDataComponent && opts) {
       (comp as ComponentData).init(opts);
     }
-    comp._state = ComponentState.Ready;
+    comp._world = this._world;
     // @todo: check in dev mode for duplicate.
     entity._components.set(Class, comp);
     this.updateArchetype(entity, Class);
@@ -172,7 +172,6 @@ export class ComponentManager<WorldType extends World> {
     component: Component
   ): void {
     const Class = component.constructor as ComponentClass;
-    component._state = ComponentState.None;
     if (component.pooled) {
       this._data.get(Class)!.pool?.release(component);
     }

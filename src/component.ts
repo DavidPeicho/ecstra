@@ -1,12 +1,6 @@
 import { Property } from './property.js';
-import { Constructor, DataComponentClass, Option, PropertiesOf } from './types';
-
-export enum ComponentState {
-  None = 0,
-  Added = 1,
-  Ready = 2,
-  Removed = 3
-}
+import { Constructor, DataComponentClass, Nullable, Option, PropertiesOf } from './types';
+import { World } from './world.js';
 
 /**
  * Base class for a component.
@@ -22,27 +16,28 @@ export abstract class Component {
   /** `true` if the object instance derives from [[Component]] */
   public readonly isComponent!: true;
 
-  /**
-   * @hidden
-   */
-  public _state: ComponentState;
+  /** @hidden */
+  public _world: Nullable<World>;
 
   /**
    * @hidden
    */
   public _pooled: boolean;
 
+  /**
+   * @hidden
+   */
+  protected _version: number;
+
   public constructor() {
     Object.defineProperty(this, 'isComponent', { value: true });
-    this._state = ComponentState.None;
+    this._world = null;
     this._pooled = false;
+    this._version = 0;
   }
 
-  /**
-   * This is useless for now.
-   */
-  get state(): ComponentState {
-    return this._state;
+  public update(): this {
+    return this;
   }
 
   /**
@@ -51,6 +46,14 @@ export abstract class Component {
    */
   get pooled(): boolean {
     return this._pooled;
+  }
+
+  /**
+   * Returns the version of the component, i.e., the number related to the
+   * last time it's been updated
+   */
+  get version(): number {
+    return this._version;
   }
 }
 
@@ -153,6 +156,13 @@ export class ComponentData extends Component {
     return new (this.constructor as Constructor<this>)().copy(this);
   }
 
+  public update(): this {
+    if (this._world) {
+      this._version = this._world.version + 1;
+    }
+    return this;
+  }
+
   /**
    * Initiliazes the component with its default properties, overriden by
    * the `source`
@@ -183,16 +193,9 @@ export class ComponentData extends Component {
       Class !== ComponentData
     );
 
-    return this;
-  }
-}
+    this._version = 0;
 
-// @todo: up to one component per world on a dummy entity.
-export class SingletonComponent extends ComponentData {
-  public readonly isSingletonComponent!: true;
-  public constructor() {
-    super();
-    Object.defineProperty(this, 'isSingletonComponent', { value: true });
+    return this;
   }
 }
 
