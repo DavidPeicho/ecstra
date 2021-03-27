@@ -182,7 +182,7 @@ the other, one group at a time. Running systems can query entities based on the 
 ## Example
 
 ```js
-import { NumberProp, System } from 'fecs';
+import { NumberProp, System } from 'ecstra';
 
 class TransformComponent extends ComponentData { }
 TransformComponent.Properties = {
@@ -226,7 +226,7 @@ Queries can also specify that they want to deal with entities that
 **do not** have a given component:
 
 ```js
-import { Not } from 'fecs';
+import { Not } from 'ecstra';
 
 PhysicsSystem.Queries = {
   entitiesWithBoxThatArentPlayers: [
