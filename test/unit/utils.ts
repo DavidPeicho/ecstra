@@ -32,3 +32,15 @@ export class FooBarSystem extends System {
   };
   execute() {}
 }
+
+export function spy() {
+  function proxy(...args: unknown[]) {
+    proxy.calls.push(args);
+    proxy.called = true;
+  }
+
+  proxy.calls = [] as unknown[];
+  proxy.called = false;
+
+  return proxy;
+}
