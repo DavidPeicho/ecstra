@@ -50,6 +50,7 @@ export class SystemManager<WorldType extends World> {
     groupInstance.add(system);
     groupInstance.sort();
     this._systems.set(Class, system);
+    if (system.init) system.init();
     return this;
   }
 
@@ -74,6 +75,7 @@ export class SystemManager<WorldType extends World> {
       // somewhere else.
       this._groups.splice(this._groups.indexOf(group), 1);
     }
+    if (system.dispose) system.dispose();
     // Deletes system entry.
     this._systems.delete(Class);
   }

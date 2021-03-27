@@ -142,6 +142,16 @@ export abstract class System<WorldType extends World = World> {
    */
   public abstract execute(delta: number): void;
 
+  /**
+   * Called when the System is registered in a World
+   */
+  public init?(): void;
+
+  /**
+   * Called when the System is removed from a World
+   */
+  public dispose?(): void;
+
   /** Returns the group in which this system belongs */
   public get group(): SystemGroup<WorldType> {
     return this._group;

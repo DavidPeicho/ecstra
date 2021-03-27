@@ -1,12 +1,13 @@
 import test from 'ava';
 import { SystemGroup } from '../../src/system-group.js';
 import { System } from '../../src/system.js';
-
 import { World } from '../../src/world.js';
+import { spy } from './utils.js';
 
 test('World > System > register', (t) => {
   class MySystem extends System {
     execute() {}
+    init = spy();
   }
   const world = new World();
   world.register(MySystem);
@@ -14,6 +15,7 @@ test('World > System > register', (t) => {
 
   t.true(!!sys);
   t.is(sys.group.constructor, SystemGroup);
+  t.true(sys.init.called);
 });
 
 test('World > System > register with group', (t) => {
@@ -56,6 +58,7 @@ test('World > SystemGroup > retrieve', (t) => {
 test('World > System > unregister', (t) => {
   class MySystem extends System {
     execute() {}
+    dispose = spy();
   }
   class MyGroup extends SystemGroup {}
 
@@ -72,4 +75,5 @@ test('World > System > unregister', (t) => {
   t.false(!!world.system(MySystem)!);
   t.is(group['_systems'].indexOf(system), -1);
   t.is(world.group(MyGroup), undefined);
+  t.true(system.dispose.called);
 });
