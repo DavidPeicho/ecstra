@@ -176,8 +176,8 @@ Coming soon.
 
 # Systems
 
-Systems are run when the world ticks. They are schedule to run one after
-the other, one group at a time. Running systems can query entities based on the components they hold.
+Systems are run when the world ticks. They are scheduled to run one after
+the other, one group at a time. Systems can query entities based on the components they hold.
 
 ```js
 import { System } from 'ecstra';
@@ -268,7 +268,7 @@ system.group.sort();
 
 # Queries
 
-System can have a `Queries` static properties that list all the queries you want to
+System may have a `Queries` static properties that list all the queries you want to
 cache. Queries are created upon system instanciation, and are
 cached until the system is unregistered.
 
@@ -304,11 +304,15 @@ class PhysicsSystem extends System {
 // The static property `Queries` list the query you want to automatically
 // create with the system.
 PhysicsSystem.Queries = {
+  // The `entitiesWithBox` matches every entity with the `SpeedComponent` and
+  // `TransformComponent` components.
   entitiesWithBox: [ SpeedComponent, TransformComponent ]
 };
 ```
 
 ## Operators
+
+### Not
 
 Queries can also specify that they want to deal with entities that
 **do not** have a given component:
@@ -319,6 +323,8 @@ import { Not } from 'ecstra';
 ...
 
 PhysicsSystem.Queries = {
+  // Matches entities with `SpeedComponent` and `TransformComponent but
+  // without `PlayerComponent`.
   entitiesWithBoxThatArentPlayers: [
     SpeedComponent,
     TransformComponent,
@@ -329,7 +335,7 @@ PhysicsSystem.Queries = {
 
 ## Events
 
-A query will notifiy the user when a new entity is matching its component
+A query will notifiy when a new entity is matching its component
 layout:
 
 ```js
@@ -355,11 +361,14 @@ MySystem.Queries = {
 You can use those two events to perform initialization and disposal of
 resources.
 
-> NOTE: those events are **synchronous** and will be called in the order of
-> creation of the queries.
->
-> This behaviour could be later changed in the library if events **must** be
-> based on the systems execution order.
+### Events Order
+
+Those events are **synchronous** and can be called in **any** order. If you
+have two queries, never assumes the `onEntityAdded` and `onEntityRemoved` events
+of one will be triggered before the other.
+
+> NOTE: the current behaviour could be later changed in the library if
+> events **must** be based on the systems execution order.
 
 # Decorators
 
