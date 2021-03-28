@@ -10,7 +10,8 @@ Fast & Flexible EntityComponentSystem (ECS) for JavaScript and Typescript, avail
 
 Get started with:
 * The [Documentation](./DOC.md)
-* The [Examples](./example)
+* The [JavaScript Examples](./example)
+* The [TypeScript Examples](./example/typescript)
 
 > 🔍 I am currently looking for people to help me to identify their needs in order to drive the development of this [library further](#stable-version).
 
@@ -22,7 +23,7 @@ Get started with:
 
 > Created as 'Flecs', it's been renamed to 'Ecstra' to avoid duplicate
 
-Ecstra (pronounced as "eck-stra") is heavily based on [Ecsy](https://github.com/ecsyjs/ecsy), but mixes concepts from other great ECS. It also share some concepts with
+Ecstra (pronounced as "extra") is heavily based on [Ecsy](https://github.com/ecsyjs/ecsy), but mixes concepts from other great ECS. It also share some concepts with
 [Hecs](https://github.com/gohyperr/hecs/).
 
 My goals for the library is to keep it:
@@ -45,6 +46,7 @@ The library will prioritize stability improvements over feature development.
 * TypeScript Decorators
   * For component properties
   * For system ordering and configuration
+* No Dependency
 
 ## Install
 
@@ -66,12 +68,108 @@ The library is distributed as an ES6 module, but also comes with two UMD builds:
 
 ## Usage Example
 
+### TypeScript
+
+```ts
+import {
+  ComponentData,
+  TagComponent,
+  System,
+  World,
+  number,
+  queries,
+  ref
+} from 'ecstra';
+
+/**
+ * Components definition.
+ */
+
+class Position2D extends ComponentData {
+  @number()
+  x!: number;
+  @number()
+  y!: number;
+}
+
+class FollowTarget extends ComponentData {
+  @ref()
+  target!: number;
+  @number(1.0)
+  speed!: number;
+}
+
+class PlayerTag extends TagComponent {}
+class ZombieTag extends TagComponent {}
+
+/**
+ * Systems definition.
+ */
+
+@queries({
+  // Select entities with all three components `ZombieTag`, `FollowTarget`, and
+  // `Position2D`.
+  zombies: [ZombieTag, FollowTarget, Position2D]
+})
+class ZombieFollowSystem extends System {
+
+  execute(delta: number): void {
+    this.queries.zombies.execute((entity) => {
+      const { speed, target } = entity.read(FollowTarget);
+      const position = entity.write(Position2D);
+      const deltaX = target.x - position.x;
+      const deltaY = target.y - position.y;
+      const len = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+      if (len >= 0.00001) {
+        position.x += speed * delta * (deltaX / len);
+        position.y += speed * delta * (deltaY / len);
+      }
+    });
+  }
+
+}
+
+const world = new World().register(ZombieFollowSystem);
+
+// Creates a player entity.
+const playerEntity = world.create().add(PlayerTag).add(Position2D);
+const playerPosition = playerEntity.read();
+
+// Creates 100 zombies at random positions with a `FollowTarget` component that
+// will make them follow our player.
+for (let i = 0; i < 100; ++i) {
+  world.create()
+    .add(ZombieTag)
+    .add(Position2D, {
+      x: Math.floor(Math.random() * 50.0) - 100.0,
+      y: Math.floor(Math.random() * 50.0) - 100.0
+    })
+    .add(FollowTarget, { target: playerPosition })
+}
+
+// Runs the animation loop and execute all systems every frame.
+
+let lastTime = 0.0;
+function loop() {
+  const currTime = performance.now();
+  const deltaTime = currTime - lastTime;
+  lastTime = currTime;
+  world.execute(deltaTime);
+  requestAnimationFrame(loop);
+}
+lastTime = performance.now();
+loop();
+```
+
+### JavaScript
+
 ```js
 import {
   ComponentData,
   TagComponent,
   NumberProp,
   RefProp,
+  System,
   World
 } from 'ecstra';
 
@@ -121,7 +219,7 @@ ZombieFollowSystem.Queries = {
   zombies: [ZombieTag, FollowTarget, Position2D]
 }
 
-const world = new World();
+const world = new World().register(ZombieFollowSystem);
 
 // Creates a player entity.
 const playerEntity = world.create().add(PlayerTag).add(Position2D);
@@ -151,6 +249,39 @@ function loop() {
 }
 lastTime = performance.now();
 loop();
+```
+
+## Running Examples
+
+In order to try the examples, you need to build the library using:
+
+```sh
+yarn build # Alternatively, `yarn start` to watch the files
+```
+
+You can then start the examples web server using:
+
+```sh
+yarn example
+```
+
+### TS Examples
+
+TypeScript versions of the examples are available [here](.examples/typescript).
+If you only want to see the example running, you can run the JS ones as they
+are identicial.
+
+If you want to run the TypeScript examples themselves, please build the examples
+first:
+
+```sh
+yarn example:build # Alternatively, `yarn example:start` to watch the files
+```
+
+And then run the examples web server:
+
+```sh
+yarn example
 ```
 
 ## Stable Version

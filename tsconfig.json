@@ -17,6 +17,7 @@
       "skipLibCheck": true,
       "forceConsistentCasingInFileNames": true,
       "stripInternal": true,
+      "allowSyntheticDefaultImports": true,
       "experimentalDecorators": true
   },
 
