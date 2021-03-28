@@ -123,7 +123,7 @@ const component = new HealthComponent();
 console.log(component.value); // '100'
 ```
 
-> Note: TypeScript users can declare propertiess with [decorators](#decorators).
+> NOTE: TypeScript users can declare propertiess with [decorators](#decorators).
 
 The `DataComponent` class exposes a simple interface:
 
@@ -174,68 +174,36 @@ custom logic.
 
 Coming soon.
 
-# Systems & Queries
+# Systems
 
-Systems are run when the world ticks. They are schedule to run one after
-the other, one group at a time. Running systems can query entities based on the components they hold.
-
-## Example
+Systems are run when the world ticks. They are scheduled to run one after
+the other, one group at a time. Systems can query entities based on the components they hold.
 
 ```js
-import { NumberProp, System } from 'ecstra';
-
-class TransformComponent extends ComponentData { }
-TransformComponent.Properties = {
-  x: NumberProp(), // Defaults to 0.
-  y: NumberProp(), // Defaults to 0.
-};
-
-
-class SpeedComponent extends ComponentData { }
-SpeedComponent.Properties = {
-  value: NumberProp(150.0)
-};
+import { System } from 'ecstra';
 
 class PhysicsSystem extends System {
 
+  init() {
+    // Triggered on initialization. Note: you can also use the
+    // constructor for that.
+  }
+
   execute(delta) {
-    // `query` contains **every** entity that has at least the
-    // components `SpeedComponent` and `TransformComponent`.
-    const query = this.queries.entitiesWithBox;
-    // Loops over every entity.
-    query.execute((entity) => {
-      const transform = entity.write(TransformComponent);
-      const speed = entity.read(SpeedComponent);
-      transform.y = Math.max(0.0, transform.y - speed.value * delta);
-    });
+    // Performs update logic here.
+  }
+
+  dispose() {
+    // Triggered when system is removed from the world.
   }
 
 }
-PhysicsSystem.Queries = {
-  entitiesWithBox: [ SpeedComponent, TransformComponent ]
-};
 ```
 
-The `execute()` method is automatically called. This is where most (all if possible) of your logic should happen.
-
-The `Queries` static properties list all the queries you want to
-cache. Queries are created when the system is instantiated, and are
-cached until the system is unregistered.
-
-Queries can also specify that they want to deal with entities that
-**do not** have a given component:
-
-```js
-import { Not } from 'ecstra';
-
-PhysicsSystem.Queries = {
-  entitiesWithBoxThatArentPlayers: [
-    SpeedComponent,
-    TransformComponent,
-    Not(PlayerComponent)
-  ]
-};
-```
+Systems have the following lifecycle:
+* `init()` → Triggered upon system instanciation in the world
+* `execute()` → Triggered when the world execute
+* `dispose()` → Triggered when system is destroyed by the world
 
 ## Order
 
@@ -297,6 +265,110 @@ system.order = 10;
 system.group.sort();
 
 ```
+
+# Queries
+
+System may have a `Queries` static properties that list all the queries you want to
+cache. Queries are created upon system instanciation, and are
+cached until the system is unregistered.
+
+```js
+import { NumberProp, System } from 'ecstra';
+
+class TransformComponent extends ComponentData { }
+TransformComponent.Properties = {
+  x: NumberProp(), // Defaults to 0.
+  y: NumberProp(), // Defaults to 0.
+};
+
+class SpeedComponent extends ComponentData { }
+SpeedComponent.Properties = {
+  value: NumberProp(150.0)
+};
+
+class PhysicsSystem extends System {
+
+  execute(delta) {
+    // `query` contains **every** entity that has at least the
+    // components `SpeedComponent` and `TransformComponent`.
+    const query = this.queries.entitiesWithBox;
+    // Loops over every entity.
+    query.execute((entity) => {
+      const transform = entity.write(TransformComponent);
+      const speed = entity.read(SpeedComponent);
+      transform.y = Math.max(0.0, transform.y - speed.value * delta);
+    });
+  }
+
+}
+// The static property `Queries` list the query you want to automatically
+// create with the system.
+PhysicsSystem.Queries = {
+  // The `entitiesWithBox` matches every entity with the `SpeedComponent` and
+  // `TransformComponent` components.
+  entitiesWithBox: [ SpeedComponent, TransformComponent ]
+};
+```
+
+## Operators
+
+### Not
+
+Queries can also specify that they want to deal with entities that
+**do not** have a given component:
+
+```js
+import { Not } from 'ecstra';
+
+...
+
+PhysicsSystem.Queries = {
+  // Matches entities with `SpeedComponent` and `TransformComponent but
+  // without `PlayerComponent`.
+  entitiesWithBoxThatArentPlayers: [
+    SpeedComponent,
+    TransformComponent,
+    Not(PlayerComponent)
+  ]
+};
+```
+
+## Events
+
+A query will notifiy when a new entity is matching its component
+layout:
+
+```js
+class MySystem extends System {
+
+  init() {
+    this.queries.myQuery.onEntityAdded = () => {
+      // Triggered when a new entity matches the component layout of the
+      // query `myQuery`.
+    };
+    this.queries.myQuery.onEntityRemoved = () => {
+      // Triggered when an entity that was previously matching query isn't
+      // matching anymore.
+    };
+  }
+
+}
+MySystem.Queries = {
+  myQuery: [ ... ]
+}
+```
+
+You can use those two events to perform initialization and disposal of
+resources.
+
+### Events Order
+
+Those events are **synchronous** and can be called in **any** order. If you
+have two queries, never assumes the `onEntityAdded` and `onEntityRemoved` events
+of one will be triggered before the other.
+
+> NOTE: the current behaviour could be later changed in the library if
+> events **must** be based on the systems execution order.
 
 # Decorators
 

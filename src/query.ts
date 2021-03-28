@@ -23,6 +23,9 @@ export function Not(Class: ComponentClass) {
  * @category query
  */
 export class Query<E extends Entity = Entity> {
+  public onEntityAdded?: (entity: E) => void;
+  public onEntityRemoved?: (entity: E) => void;
+
   /** @hidden */
   private readonly _hash: string;
 
@@ -112,7 +115,7 @@ export class Query<E extends Entity = Entity> {
    */
   public hasEntity(entity: E): boolean {
     for (const archetype of this._archetypes) {
-      if (archetype.hasEntity(entity)) {
+      if (entity.archetype === archetype) {
         return true;
       }
     }
@@ -134,6 +137,18 @@ export class Query<E extends Entity = Entity> {
 
   public get hash(): string {
     return this._hash;
+  }
+
+  public _notifyEntityAdded(entity: E): void {
+    if (this.onEntityAdded) {
+      this.onEntityAdded(entity);
+    }
+  }
+
+  public _notifyEntityRemoved(entity: E): void {
+    if (this.onEntityRemoved) {
+      this.onEntityRemoved(entity);
+    }
   }
 }
 

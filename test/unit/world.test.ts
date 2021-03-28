@@ -57,7 +57,9 @@ test('World > SystemGroup > retrieve', (t) => {
 
 test('World > System > unregister', (t) => {
   class MySystem extends System {
-    execute() {}
+    execute() {
+      /** Empty. */
+    }
     dispose = spy();
   }
   class MyGroup extends SystemGroup {}

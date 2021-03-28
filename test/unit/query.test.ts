@@ -2,9 +2,17 @@ import test from 'ava';
 import { TagComponent } from '../../src/component.js';
 import { Archetype } from '../../src/internals/archetype.js';
 import { Not, Query } from '../../src/query.js';
-import { System } from '../../src/system.js';
+import { System, SystemOptions } from '../../src/system.js';
+import { SystemGroup } from '../../src/system-group';
 import { World } from '../../src/world.js';
-import { BarComponent, FooBarSystem, FooComponent } from './utils.js';
+import {
+  BarComponent,
+  FooBarSystem,
+  FooComponent,
+  spy,
+  SpyFunction
+} from './utils.js';
+import { Entity } from '../../src/entity.js';
 
 test('Query > archetype match', (t) => {
   class MyTagComponent extends TagComponent {}
@@ -41,7 +49,9 @@ test('Query Manager > intersection', (t) => {
       foobar: [FooComponent, BarComponent],
       all: [FooComponent, BarComponent, MyTagComponent]
     };
-    execute() {}
+    execute() {
+      /** Empty. */
+    }
   }
 
   const world = new World().register(MySystem, {});
@@ -133,4 +143,119 @@ test('Query Manager > entity destroyed', (t) => {
   entity.destroy();
   // Assumes destroying entity is synchronous.
   t.false(system['queries'].foobar.hasEntity(entity));
+});
+
+test('Query Manager > added entity triggers query callback', (t) => {
+  class MySystem extends System {
+    public static Queries = {
+      foobar: [FooComponent]
+    };
+    constructor(group: SystemGroup, options: Partial<SystemOptions>) {
+      super(group, options);
+      this.queries.foobar.onEntityAdded = spy();
+    }
+    execute() {
+      /** Empty. */
+    }
+  }
+
+  const world = new World().register(MySystem, {});
+  const system = world.system(MySystem) as MySystem;
+
+  const added = system['queries'].foobar.onEntityAdded as SpyFunction;
+  t.false(added.called);
+  world.create().add(FooComponent);
+  t.true(added.called);
+  t.is(added.calls.length, 1);
+
+  const entityA = world.create();
+
+  t.is(added.calls.length, 1);
+  entityA.add(FooComponent);
+  t.is(added.calls.length, 2);
+});
+
+test('Query Manager > removed entity triggers query callback', (t) => {
+  class MySystem extends System {
+    public static Queries = {
+      foobar: [FooComponent]
+    };
+    constructor(group: SystemGroup, options: Partial<SystemOptions>) {
+      super(group, options);
+      this.queries.foobar.onEntityRemoved = spy();
+    }
+    execute() {
+      /** Empty. */
+    }
+  }
+
+  const world = new World().register(MySystem, {});
+  const system = world.system(MySystem) as MySystem;
+
+  const removed = system['queries'].foobar.onEntityRemoved as SpyFunction;
+  t.false(removed.called);
+  const entityA = world.create().add(FooComponent);
+  t.is(removed.calls.length, 0);
+
+  entityA.remove(FooComponent);
+  t.is(removed.calls.length, 1);
+  entityA.add(FooComponent).destroy();
+  t.is(removed.calls.length, 2);
+});
+
+test('Query Manager > entity move to new archetype triggers query callback', (t) => {
+  class MySystem extends System {
+    public static Queries = {
+      foo: [FooComponent],
+      foobar: [FooComponent, BarComponent]
+    };
+    constructor(group: SystemGroup, options: Partial<SystemOptions>) {
+      super(group, options);
+      this.queries.foo.onEntityAdded = spy();
+      this.queries.foo.onEntityRemoved = spy();
+      this.queries.foobar.onEntityAdded = spy();
+      this.queries.foobar.onEntityRemoved = spy();
+    }
+    execute() {
+      /** Empty. */
+    }
+  }
+
+  const world = new World().register(MySystem, {});
+  const system = world.system(MySystem) as MySystem;
+
+  t.is((system.queries.foo.onEntityAdded as SpyFunction).calls.length, 0);
+  t.is((system.queries.foo.onEntityRemoved as SpyFunction).calls.length, 0);
+  t.is((system.queries.foobar.onEntityAdded as SpyFunction).calls.length, 0);
+  t.is((system.queries.foobar.onEntityRemoved as SpyFunction).calls.length, 0);
+
+  const entity = world.create().add(FooComponent);
+  t.is((system.queries.foo.onEntityAdded as SpyFunction).calls.length, 1);
+  entity.add(BarComponent);
+  t.is((system.queries.foo.onEntityRemoved as SpyFunction).calls.length, 1);
+  t.is((system.queries.foobar.onEntityAdded as SpyFunction).calls.length, 1);
+});
+
+test('Query Manager > clear archetype observers when query is deleted', (t) => {
+  class MySystem extends System {
+    public static Queries = {
+      foo: [FooComponent]
+    };
+    constructor(group: SystemGroup, options: Partial<SystemOptions>) {
+      super(group, options);
+    }
+    execute() {
+      /** Empty. */
+    }
+  }
+
+  const world = new World().register(MySystem, {});
+  const entity = world.create().add(FooComponent);
+  const archetype = entity.archetype as Archetype<Entity>;
+
+  t.is(archetype.onEntityAdded.count, 1);
+  t.is(archetype.onEntityRemoved.count, 1);
+  entity.remove(FooComponent);
+  t.is(archetype.onEntityAdded.count, 0);
+  t.is(archetype.onEntityRemoved.count, 0);
 });
