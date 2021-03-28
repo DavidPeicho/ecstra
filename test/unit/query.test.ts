@@ -5,7 +5,13 @@ import { Not, Query } from '../../src/query.js';
 import { System, SystemOptions } from '../../src/system.js';
 import { SystemGroup } from '../../src/system-group';
 import { World } from '../../src/world.js';
-import { BarComponent, FooBarSystem, FooComponent, spy, SpyFunction } from './utils.js';
+import {
+  BarComponent,
+  FooBarSystem,
+  FooComponent,
+  spy,
+  SpyFunction
+} from './utils.js';
 import { Entity } from '../../src/entity.js';
 
 test('Query > archetype match', (t) => {
@@ -43,7 +49,9 @@ test('Query Manager > intersection', (t) => {
       foobar: [FooComponent, BarComponent],
       all: [FooComponent, BarComponent, MyTagComponent]
     };
-    execute() { /** Empty. */ }
+    execute() {
+      /** Empty. */
+    }
   }
 
   const world = new World().register(MySystem, {});
@@ -146,7 +154,9 @@ test('Query Manager > added entity triggers query callback', (t) => {
       super(group, options);
       this.queries.foobar.onEntityAdded = spy();
     }
-    execute() { /** Empty. */ }
+    execute() {
+      /** Empty. */
+    }
   }
 
   const world = new World().register(MySystem, {});
@@ -174,7 +184,9 @@ test('Query Manager > removed entity triggers query callback', (t) => {
       super(group, options);
       this.queries.foobar.onEntityRemoved = spy();
     }
-    execute() { /** Empty. */ }
+    execute() {
+      /** Empty. */
+    }
   }
 
   const world = new World().register(MySystem, {});
@@ -204,7 +216,9 @@ test('Query Manager > entity move to new archetype triggers query callback', (t)
       this.queries.foobar.onEntityAdded = spy();
       this.queries.foobar.onEntityRemoved = spy();
     }
-    execute() { /** Empty. */ }
+    execute() {
+      /** Empty. */
+    }
   }
 
   const world = new World().register(MySystem, {});
@@ -230,7 +244,9 @@ test('Query Manager > clear archetype observers when query is deleted', (t) => {
     constructor(group: SystemGroup, options: Partial<SystemOptions>) {
       super(group, options);
     }
-    execute() { /** Empty. */ }
+    execute() {
+      /** Empty. */
+    }
   }
 
   const world = new World().register(MySystem, {});

@@ -50,7 +50,7 @@ export class QueryManager<WorldType extends World> {
     }
     const addedObs = new Observer(query._notifyEntityAdded.bind(query));
     addedObs.id = query.hash;
-    const removedObs = new Observer(query._notifyEntityRemoved.bind(query))
+    const removedObs = new Observer(query._notifyEntityRemoved.bind(query));
     removedObs.id = query.hash;
 
     archetype.onEntityAdded.observe(addedObs);

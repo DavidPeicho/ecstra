@@ -30,7 +30,9 @@ export class FooBarSystem extends System {
   public static Queries = {
     foobar: [FooComponent, BarComponent]
   };
-  execute(): void { /** Empty. */ }
+  execute(): void {
+    /** Empty. */
+  }
 }
 
 export function spy(): SpyFunction {
