@@ -30,17 +30,21 @@ export class FooBarSystem extends System {
   public static Queries = {
     foobar: [FooComponent, BarComponent]
   };
-  execute() {}
+  execute(): void { /** Empty. */ }
 }
 
-export function spy() {
+export function spy(): SpyFunction {
   function proxy(...args: unknown[]) {
     proxy.calls.push(args);
     proxy.called = true;
   }
-
   proxy.calls = [] as unknown[];
   proxy.called = false;
-
   return proxy;
+}
+
+export interface SpyFunction {
+  (): unknown;
+  calls: unknown[];
+  called: boolean;
 }

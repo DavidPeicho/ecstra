@@ -43,16 +43,10 @@ export class ComponentManager<WorldType extends World> {
     entity._archetype = this._emptyArchetype;
   }
 
-  public destroyEntity(entity: Entity): void {
+  public destroyEntity(entity: EntityOf<WorldType>): void {
     const archetype = entity.archetype;
     if (archetype) {
-      archetype.entities.splice(archetype.entities.indexOf(entity), 1);
-      entity._archetype = null;
-      // @todo: that may not be really efficient if an archetype is always
-      // composed of one entity getting attached / dettached.
-      if (archetype.entities.length === 0) {
-        this.archetypes.delete(archetype.hash);
-      }
+      this._removeEntityFromArchetype(entity);
     }
   }
 
@@ -193,29 +187,12 @@ export class ComponentManager<WorldType extends World> {
     const archetype = this.archetypes.get(hash) as Archetype<
       EntityOf<WorldType>
     >;
-    const entities = archetype.entities;
-    entity._indexInArchetype = entities.length;
-    entity._archetype = archetype;
-    entities.push(entity);
+    archetype.add(entity);
   }
 
   private _removeEntityFromArchetype(entity: EntityOf<WorldType>): void {
     const archetype = entity.archetype as Archetype<EntityOf<WorldType>>;
-    const entities = archetype.entities;
-
-    // Move last entity to removed location.
-    if (entities.length > 1) {
-      const last = entities[entities.length - 1];
-      last._indexInArchetype = entity._indexInArchetype;
-      entities[entity._indexInArchetype] = last;
-      entities.pop();
-    } else {
-      entities.length = 0;
-    }
-
-    entity._archetype = null;
-    entity._indexInArchetype = -1;
-
+    archetype.remove(entity);
     // @todo: that may not be really efficient if an archetype is always
     // composed of one entity getting attached / dettached.
     if (archetype !== this._emptyArchetype && archetype.empty) {

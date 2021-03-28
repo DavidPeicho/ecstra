@@ -2,6 +2,7 @@ import { ComponentOperator, Query, QueryComponents } from '../query.js';
 import { World } from '../world.js';
 import { Archetype } from './archetype.js';
 import { ComponentClass, EntityOf } from '../types';
+import { Observer } from '../data/observer.js';
 
 export class QueryManager<WorldType extends World> {
   private _world: WorldType;
@@ -44,9 +45,17 @@ export class QueryManager<WorldType extends World> {
     query: Query<EntityOf<WorldType>>,
     archetype: Archetype<EntityOf<WorldType>>
   ): void {
-    if (query.matches(archetype)) {
-      query['_archetypes'].push(archetype);
+    if (!query.matches(archetype)) {
+      return;
     }
+    const addedObs = new Observer(query._notifyEntityAdded.bind(query));
+    addedObs.id = query.hash;
+    const removedObs = new Observer(query._notifyEntityRemoved.bind(query))
+    removedObs.id = query.hash;
+
+    archetype.onEntityAdded.observe(addedObs);
+    archetype.onEntityRemoved.observe(removedObs);
+    query['_archetypes'].push(archetype);
   }
 
   public removeArchetypeFromQuery(
@@ -57,6 +66,8 @@ export class QueryManager<WorldType extends World> {
       const archetypes = query['_archetypes'];
       const index = archetypes.indexOf(archetype);
       if (index >= 0) {
+        archetype.onEntityAdded.unobserveId(query.hash);
+        archetype.onEntityRemoved.unobserveId(query.hash);
         archetypes.splice(index, 1);
       }
     }
