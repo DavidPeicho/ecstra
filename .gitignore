@@ -3,6 +3,8 @@
 node_modules
 
 dist/
+coverage/
+
 # Ignores generated js files in TS examples
 ./examples/typescript/**/*.js
 
