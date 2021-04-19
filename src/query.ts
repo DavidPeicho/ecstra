@@ -3,11 +3,21 @@ import { Archetype } from './internals/archetype.js';
 import { ComponentClass, Option } from './types';
 
 enum QueryComponentOperatorKind {
-  Not = 'not'
+  Not = 'not',
+  Added = 'added',
+  Updated = 'updated'
 }
 
-export function Not(Class: ComponentClass) {
+export function Not(Class: ComponentClass): ComponentOperator {
   return { Class, kind: QueryComponentOperatorKind.Not, isOperator: true };
+}
+
+export function Added(Class: ComponentClass): ComponentOperator {
+  return { Class, kind: QueryComponentOperatorKind.Added, isOperator: true };
+}
+
+export function Updated(Class: ComponentClass): ComponentOperator {
+  return { Class, kind: QueryComponentOperatorKind.Updated, isOperator: true };
 }
 
 /**
@@ -38,18 +48,51 @@ export class Query<E extends Entity = Entity> {
   /** @hidden */
   private _notClasses: ComponentClass[];
 
+  /** @hidden */
+  private _addedClasses: ComponentClass[];
+
+  /** @hidden */
+  private _updatedClasses: ComponentClass[];
+
   public constructor(hash: string, components: QueryComponents) {
     this._hash = hash;
     this._archetypes = [];
     this._classes = [];
     this._notClasses = [];
+    this._addedClasses = [];
+    this._updatedClasses = [];
     for (const comp of components) {
-      if ((comp as ComponentOperator).isOperator) {
-        this._notClasses.push((comp as ComponentOperator).Class);
-      } else {
+      if (!(comp as ComponentOperator).isOperator) {
         this._classes.push(comp as ComponentClass);
+        continue;
+      }
+      const Class = (comp as ComponentOperator).Class;
+      switch ((comp as ComponentOperator).kind) {
+        case QueryComponentOperatorKind.Not:
+          this._notClasses.push(Class);
+          break;
+        case QueryComponentOperatorKind.Added:
+          this._addedClasses.push(Class);
+          break;
+        case QueryComponentOperatorKind.Updated:
+          this._updatedClasses.push(Class);
+          break;
       }
     }
+  }
+
+  public isEntityUpdated(entity: E): boolean {
+    const modified = this._updatedClasses;
+    if (modified.length === 0) {
+      return true;
+    }
+    const version = entity.world.version;
+    for (const Class of modified) {
+      if (entity.read(Class)!.version <= version) {
+        return false;
+      }
+    }
+    return true;
   }
 
   /**
@@ -62,7 +105,10 @@ export class Query<E extends Entity = Entity> {
     for (let archId = archetypes.length - 1; archId >= 0; --archId) {
       const entities = archetypes[archId].entities;
       for (let entityId = entities.length - 1; entityId >= 0; --entityId) {
-        cb(entities[entityId]);
+        const entity = entities[entityId];
+        if (this.isEntityUpdated(entity)) {
+          cb(entity);
+        }
       }
     }
   }
@@ -78,7 +124,8 @@ export class Query<E extends Entity = Entity> {
     for (let archId = archetypes.length - 1; archId >= 0; --archId) {
       const entities = archetypes[archId].entities;
       for (let entityId = entities.length - 1; entityId >= 0; --entityId) {
-        if (cb(entities[entityId])) {
+        const entity = entities[entityId];
+        if (this.isEntityUpdated(entity) && cb(entity)) {
           return;
         }
       }

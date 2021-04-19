@@ -127,8 +127,11 @@ export class Entity {
    * @return The component instance if found, `undefined` otherwise
    */
   public write<T extends Component>(Class: ComponentClass<T>): Option<T> {
-    // @todo: retrieve component in write mode
-    return this._components.get(Class) as Option<T>;
+    const comp = this._components.get(Class);
+    if (comp) {
+      return comp.update() as Option<T>;
+    }
+    return comp;
   }
 
   /**
@@ -153,6 +156,10 @@ export class Entity {
    */
   public get isEmpty(): boolean {
     return this._components.size === 0;
+  }
+
+  public get world(): World {
+    return this._world;
   }
 
   /**
