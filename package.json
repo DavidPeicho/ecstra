@@ -30,7 +30,7 @@
     "test": "ava",
     "test:coverage": "c8 check-coverage --lines 90 --functions 90 --branches 90 npm test",
     "coverage": "c8 npm test",
-    "pretty": "prettier ./src/ ./test ./benchmark --write",
+    "pretty": "prettier -c './src/**' './test/**' './benchmark/**' --write",
     "copy:to:dist": "node --experimental-modules ./scripts/copy-to-dist.js"
   },
   "devDependencies": {

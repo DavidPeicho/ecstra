@@ -11,7 +11,6 @@ enum CommandType {
 }
 
 class Command {
-
   public type: CommandType;
   public entity: Entity;
   public componentClass: Nullable<ComponentClass>;
@@ -31,7 +30,6 @@ class Command {
     this.componentOptions = undefined;
     return this;
   }
-
 }
 
 /**
@@ -44,9 +42,10 @@ class Command {
  * Command buffers are useful to defer modification applies to the world and
  * its entities. In a multithreaded environment, they would also allow to
  * better synchronization read & write operations applied to the world
+ *
+ * @category entity
  */
 export class CommandBuffer {
-
   /** @hidden */
   private _pool: SequentialPool<Command>;
 
@@ -60,7 +59,10 @@ export class CommandBuffer {
         break;
       case CommandType.AddComponent:
         // @todo: batch archetype removal in world if possible.
-        cmd.entity.add(cmd.componentClass as ComponentClass, cmd.componentOptions);
+        cmd.entity.add(
+          cmd.componentClass as ComponentClass,
+          cmd.componentOptions
+        );
         break;
       case CommandType.RemoveComponent:
         // @todo: batch archetype removal in world if possible.
@@ -129,5 +131,4 @@ export class CommandBuffer {
     this._pool.execute(this._executor);
     this._pool.release();
   }
-
 }

@@ -12,7 +12,6 @@ import { Query, QueryComponents } from './query.js';
 import { DefaultPool, ObjectPool } from './pool/pool.js';
 import {
   ComponentClass,
-  ComponentOf,
   Constructor,
   EntityOf,
   EntityClass,
@@ -112,7 +111,7 @@ export class World<E extends Entity = Entity> {
       ) as EntityPool<this>;
     }
 
-    this._postExecuteCmdBuffer  = new CommandBuffer();
+    this._postExecuteCmdBuffer = new CommandBuffer();
 
     for (const component of components) {
       this.registerComponent(component);
@@ -281,9 +280,9 @@ export class World<E extends Entity = Entity> {
     return this._systems.group(Class);
   }
 
-  public setComponentPool<P extends ObjectPool<any>>(
-    Class: ComponentClass<ComponentOf<P>>,
-    pool: Nullable<P>
+  public setComponentPool<C extends Component>(
+    Class: ComponentClass<C>,
+    pool: Nullable<ObjectPool<C>>
   ): this {
     this._components.setComponentPool(Class, pool);
     return this;
@@ -306,6 +305,10 @@ export class World<E extends Entity = Entity> {
     return this._components.getIdentifier(Class);
   }
 
+  /**
+   * Default command buffer that gets flushed after **every** systems has
+   * executed upon calling `world.execute()`
+   */
   public get postExecuteCmdBuffer(): CommandBuffer {
     return this._postExecuteCmdBuffer;
   }

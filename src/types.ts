@@ -1,6 +1,6 @@
 import { Component, ComponentData, Properties } from './component';
 import { Entity } from './entity';
-import { ObjectPool } from './pool';
+import { ObjectPool } from './pool/pool';
 import { Property } from './property';
 import { StaticQueries, System } from './system';
 import { SystemGroup } from './system-group';
@@ -24,11 +24,10 @@ export type Constructor<T> = new (...args: any[]) => T;
 export type EntityClass<T extends Entity> = new (name?: string) => T;
 
 /** Class type for a SystemGroup derived type */
-export type SystemGroupClass<
-  T extends SystemGroup = SystemGroup
-> = Constructor<T> & {
-  readonly Mame?: string;
-};
+export type SystemGroupClass<T extends SystemGroup = SystemGroup> =
+  Constructor<T> & {
+    readonly Mame?: string;
+  };
 
 /** Class type for a System derived type */
 export type SystemClass<T extends System = System> = (new (
@@ -48,15 +47,13 @@ export type ComponentClass<T extends Component = Component> = Constructor<T> & {
 };
 
 /** Class type for a ComponentData derived type */
-export type DataComponentClass<
-  T extends ComponentData = ComponentData
-> = Constructor<T> & {
-  Name?: string;
-  Properties?: Properties;
-  readonly _MergedProoperties: Properties;
-};
+export type DataComponentClass<T extends ComponentData = ComponentData> =
+  Constructor<T> & {
+    Name?: string;
+    Properties?: Properties;
+    readonly _MergedProoperties: Properties;
+  };
 
 /** Class type for a Property derived type */
-export type PropertyClass<
-  T extends Property<any> = Property<any>
-> = Constructor<T>;
+export type PropertyClass<T extends Property<any> = Property<any>> =
+  Constructor<T>;
