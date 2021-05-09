@@ -35,6 +35,17 @@ export class FooBarSystem extends System {
   }
 }
 
+export function makeProxy<Ret>(fn: (...args: any[]) => Ret): Proxy<Ret> {
+  function proxy(...args: unknown[]): Ret {
+    proxy.calls.push(args);
+    proxy.called = true;
+    return fn(...args);
+  }
+  proxy.calls = [] as any[];
+  proxy.called = false;
+  return proxy as Proxy<Ret>;
+}
+
 export function spy(): SpyFunction {
   function proxy(...args: unknown[]) {
     proxy.calls.push(args);
@@ -50,3 +61,9 @@ export interface SpyFunction {
   calls: unknown[];
   called: boolean;
 }
+
+export type Proxy<Return> = {
+  (): Return;
+  calls: unknown[];
+  called: boolean;
+};

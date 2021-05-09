@@ -14,7 +14,7 @@ export { ComponentRegisterOptions } from './internals/component-manager';
 
 /** Misc */
 
-export { DefaultPool, ObjectPool } from './pool.js';
+export { DefaultPool, ObjectPool } from './pool/pool.js';
 
 /** Properties. */
 

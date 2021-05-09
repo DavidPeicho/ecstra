@@ -1,4 +1,4 @@
-import { Constructor } from './types';
+import { Constructor } from '../types';
 
 export class DefaultPool<T> {
   protected readonly _class;
@@ -66,7 +66,7 @@ export interface ObjectPool<T> {
   expand(count: number): void;
 }
 
-interface DefaultPoolOptions<T> {
+export interface DefaultPoolOptions<T> {
   initialCount: number;
   growthPercentage: number;
 }
