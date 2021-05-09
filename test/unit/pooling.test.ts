@@ -1,7 +1,7 @@
 import test from 'ava';
 
 import { Entity } from '../../src/entity.js';
-import { DefaultPool } from '../../src/pool.js';
+import { DefaultPool } from '../../src/pool/pool.js';
 import { World } from '../../src/world.js';
 import { FooComponent } from './utils.js';
 
