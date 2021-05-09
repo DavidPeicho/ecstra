@@ -24,8 +24,7 @@ export class SequentialPool<T> {
     if (this._freeSlot === this._list.length) {
       this.expand(Math.round(this._list.length * 0.2) + 1);
     }
-    const val = this._list[this._freeSlot]!;
-    return val;
+    return this._list[this._freeSlot] as T;
   }
 
   public release(): void {

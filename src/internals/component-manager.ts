@@ -1,6 +1,6 @@
 import { Component, ComponentState, ComponentData } from '../component.js';
 import { Entity } from '../entity.js';
-import { ObjectPool } from '../pool.js';
+import { ObjectPool } from '../pool/pool.js';
 import { World } from '../world.js';
 import { Archetype } from './archetype.js';
 import {

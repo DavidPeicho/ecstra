@@ -9,7 +9,7 @@ import { System } from './system.js';
 import { SystemGroup } from './system-group.js';
 import { Component } from './component.js';
 import { Query, QueryComponents } from './query.js';
-import { DefaultPool, ObjectPool } from './pool.js';
+import { DefaultPool, ObjectPool } from './pool/pool.js';
 import {
   ComponentClass,
   ComponentOf,
@@ -23,6 +23,7 @@ import {
   SystemGroupClass
 } from './types';
 import { Archetype } from './internals/archetype.js';
+import { CommandBuffer } from './command-buffer.js';
 
 /**
  * The world is the link between entities and systems. The world is composed
@@ -81,6 +82,9 @@ export class World<E extends Entity = Entity> {
   /** @hidden */
   protected _entityPool: Nullable<EntityPool<this>>;
 
+  /** @hidden */
+  protected readonly _postExecuteCmdBuffer: CommandBuffer;
+
   /** Public API. */
 
   public constructor(options: Partial<WorldOptions<E>> = {}) {
@@ -107,6 +111,8 @@ export class World<E extends Entity = Entity> {
         this._EntityClass
       ) as EntityPool<this>;
     }
+
+    this._postExecuteCmdBuffer  = new CommandBuffer();
 
     for (const component of components) {
       this.registerComponent(component);
@@ -208,6 +214,7 @@ export class World<E extends Entity = Entity> {
    */
   public execute(delta: number): void {
     this._systems.execute(delta);
+    this._postExecuteCmdBuffer.playback();
   }
 
   /**
@@ -292,10 +299,15 @@ export class World<E extends Entity = Entity> {
    * Returns the unique identifier of the given component typee
    *
    * @param Class - Type of the component to retrieve the id for
+   *
    * @return The identifier of the component
    */
   public getComponentId(Class: ComponentClass): number {
     return this._components.getIdentifier(Class);
+  }
+
+  public get postExecuteCmdBuffer(): CommandBuffer {
+    return this._postExecuteCmdBuffer;
   }
 
   /**
